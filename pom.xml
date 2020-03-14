@@ -29,12 +29,12 @@
 					<artifactId>jetty-all</artifactId>
 				</exclusion>
 				<exclusion>
-					  <groupId>it.unimi.di</groupId>
-					  <artifactId>mg4j</artifactId>
+					<groupId>it.unimi.di</groupId>
+					<artifactId>mg4j</artifactId>
 				</exclusion>
 				<exclusion>
-					  <groupId>it.unimi.di</groupId>
-					  <artifactId>mg4j-big</artifactId>
+					<groupId>it.unimi.di</groupId>
+					<artifactId>mg4j-big</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -63,8 +63,21 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<configLocation>checkstyle.xml</configLocation>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-
-
 </project>
