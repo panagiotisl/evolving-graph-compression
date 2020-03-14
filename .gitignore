@@ -59,6 +59,7 @@ wiki*
 
 # Misc
 *.swp
+.checkstyle
 release.properties
 pom.xml.releaseBackup
 pom.xml.tag
