@@ -26,16 +26,16 @@ public class EvolvingGraph extends ImmutableGraph implements CompressionFlags, S
 	 * @param pl a progress logger to log the state of compression, or <code>null</code> if no logging is required.
 	 * @throws IOException if some exception is raised while writing the graph.
 	 */
-	public static void store(final ImmutableGraph graph, final CharSequence basename, final int windowSize, final int maxRefCount, final int minIntervalLength,
-			final int zetaK, final int flags, final int numberOfThreads, final ProgressLogger pl) throws IOException {
-		final EvolvingGraph g = new EvolvingGraph();
-		if (windowSize != -1) g.windowSize = windowSize;
-		if (maxRefCount != -1) g.maxRefCount = maxRefCount;
-		if (minIntervalLength != -1) g.minIntervalLength = minIntervalLength;
-		if (zetaK != -1) g.zetaK = zetaK;
-		g.setFlags(flags);
-		g.storeInternal(graph, basename, numberOfThreads, pl);
-	}
+//	public static void store(final ImmutableGraph graph, final CharSequence basename, final int windowSize, final int maxRefCount, final int minIntervalLength,
+//			final int zetaK, final int flags, final int numberOfThreads, final ProgressLogger pl) throws IOException {
+//		final EvolvingGraph g = new EvolvingGraph();
+//		if (windowSize != -1) g.windowSize = windowSize;
+//		if (maxRefCount != -1) g.maxRefCount = maxRefCount;
+//		if (minIntervalLength != -1) g.minIntervalLength = minIntervalLength;
+//		if (zetaK != -1) g.zetaK = zetaK;
+//		g.setFlags(flags);
+//		g.storeInternal(graph, basename, numberOfThreads, pl);
+//	}
 
 	
 	@Override
