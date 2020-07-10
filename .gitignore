@@ -7,6 +7,7 @@ tomcat
 #
 # Default excludes
 #
+timestamps.txt
 
 # Binaries
 *.7z
