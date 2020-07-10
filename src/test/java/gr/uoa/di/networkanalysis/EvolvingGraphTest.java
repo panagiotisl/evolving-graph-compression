@@ -21,7 +21,7 @@ import it.unimi.dsi.webgraph.BVGraph;
 public class EvolvingGraphTest {
 
 	public void writeTimestampsToFile(int currentNode, int[] neighbors, int outDegree, Map<Integer,Long> currentNeighborsWithTimestamps, BufferedWriter writer) throws IOException{
-		
+		// TODO Remove currentNode, it is not needed, I just added it for testing
 		writer.append(Integer.toString(currentNode));
     	writer.append(' ');
     	for(int i=0; i < outDegree; i++) {
