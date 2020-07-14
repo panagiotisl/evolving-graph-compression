@@ -118,6 +118,7 @@ public class EvolvingGraphTest {
         raf.close();
         buffered.close();
         
+        System.out.println(String.format("Index size: %d", offsetsIndex.size()));
         // At this point, if raf was not closed, you could seek any node using the offsetsIndex list which holds the offsets
         /* 
          * e.g. To find the timestamps of the node i:
