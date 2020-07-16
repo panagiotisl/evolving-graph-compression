@@ -14,26 +14,36 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
+import org.junit.Assert;
 import org.junit.Test;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.webgraph.BVGraph;
 
 public class EvolvingGraphTest {
 
-	public void writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,Long> currentNeighborsWithTimestamps, RandomAccessFile raf) throws IOException {
+	public int writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,Long> currentNeighborsWithTimestamps, BufferedWriter writer) throws IOException {
 
+		// Returns the number of characters appended to the file
+		int ret = 0;
 		for(int i=0; i < outDegree; i++) {
-    		raf.writeBytes(Long.toString(currentNeighborsWithTimestamps.get(neighbors[i])));
+    		String tmp = Long.toString(currentNeighborsWithTimestamps.get(neighbors[i]));
+			writer.append(tmp);
     		if(i != outDegree-1) {
-    			raf.writeBytes(" ");
+    			writer.append(" ");
     		}
     		else {
-    			raf.writeBytes("\n");
+    			writer.append("\n");
     		}
+    		ret += tmp.length() + 1;
     	}
+		
+		return ret;
 	}
 	
 	@Test
@@ -70,34 +80,31 @@ public class EvolvingGraphTest {
         
         // Skip the header of the file
         buffered.readLine();
-        // The file we will write the results to
-        RandomAccessFile raf = new RandomAccessFile("timestamps.txt", "rw");
+        // The file we will write the results to 
+        writer = new BufferedWriter(new FileWriter("timestamps.txt"));
         // Maintain an index of positions in the file for each node -> timestamps line
         // The number of nodes is known beforehand, set initial capacity accordingly
-        List<Long> offsetsIndex = new ArrayList<Long>(bvgraph.numNodes());
+        IntArrayList offsetsIndex= new IntArrayList();
         // Start reading the file
         int currentNode = 1;
+        int currentOffset = 0;
         Map<Integer,Long> currentNeighborsWithTimestamps = new HashMap<Integer,Long>(); // neighbor -> timestamp
         while ((line = buffered.readLine()) != null) {
             String[] tokens = line.split("\\s+");
             int node = Integer.parseInt(tokens[0]);
             int neighbor = Integer.parseInt(tokens[1]);
             long timestamp = Long.parseLong(tokens[3]);
-            // If at least one node was skipped, add that many empty lines to the file and update the index accordingly
-            if(node > currentNode + 1) {
-            	for(int i = 0; i < node - currentNode - 1; i++) {
-            		offsetsIndex.add(raf.getFilePointer());
-            		raf.writeBytes("\n");
-            	}
-            }
 
+            int previous = currentNode;
+            
             // If you find a new currentNode in the file, write the results you have so far about the current node.
             if(node != currentNode) {
             	// First get the sequence of neighbors from BVGraph
             	int[] neighbors = bvgraph.successorArray(currentNode);
             	int outDegree = bvgraph.outdegree(currentNode); // successorArray might return extra results, only the [0,outDegree) range is valid
-            	offsetsIndex.add(raf.getFilePointer());
-            	writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, raf);
+            	offsetsIndex.add(currentOffset);
+            	int charactersWritten = writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, writer);
+            	currentOffset += charactersWritten;
             	
             	// Prepare the variables for the next currentNode
             	currentNode = node;
@@ -108,24 +115,33 @@ public class EvolvingGraphTest {
             else {
             	currentNeighborsWithTimestamps.put(neighbor, timestamp);
             }
+            
+            // If at least one node was skipped, add that many empty lines to the file and update the index accordingly
+            if(node > previous + 1) {
+            	for(int i = 0; i < node - previous - 1; i++) {
+            		offsetsIndex.add(currentOffset);
+            		writer.append("\n");
+            		currentOffset += 1;
+            	}
+            }
         }
         // Write the last node. It was not written because no change in node != currentNode was detected
         int[] neighbors = bvgraph.successorArray(currentNode);
     	int outDegree = bvgraph.outdegree(currentNode);
-    	offsetsIndex.add(raf.getFilePointer());
-        writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, raf);
+    	offsetsIndex.add(currentOffset);
+        int charactersWritten = writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, writer);
+        currentOffset += charactersWritten;
         
-        raf.close();
+        writer.close();
         buffered.close();
         
         System.out.println(String.format("Index size: %d", offsetsIndex.size()));
-        // At this point, if raf was not closed, you could seek any node using the offsetsIndex list which holds the offsets
-        /* 
-         * e.g. To find the timestamps of the node i:
-         * 
-         * raf.seek(offsetsIndex.get(i));
-         * String[] timestamps = raf.readLine().split(" "); returns the timestamps as string tokens 
-        	
-		*/
+        System.out.println(offsetsIndex.getInt(offsetsIndex.size() - 1));
+
+        // Perform compression of the index using EliasFano
+        EliasFanoMonotoneLongBigList efmlbl = new EliasFanoMonotoneLongBigList(offsetsIndex);
+        System.out.println(efmlbl.numBits());
+        Assert.assertTrue(efmlbl.size64() < 4 * 8 * offsetsIndex.size());
+        Assert.assertEquals(offsetsIndex.size(), efmlbl.size64());
 	}
 }
