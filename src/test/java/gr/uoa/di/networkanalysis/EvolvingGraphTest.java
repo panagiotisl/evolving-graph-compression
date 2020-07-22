@@ -29,7 +29,8 @@ import it.unimi.dsi.webgraph.BVGraph;
 public class EvolvingGraphTest {
 
 	public long findMinimumTimestamp() throws IOException {
-		InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+		//InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+		InputStream fileStream = new FileInputStream("out.edit-enwiki.gz");
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
         BufferedReader buffered = new BufferedReader(decoder);
@@ -85,7 +86,8 @@ public class EvolvingGraphTest {
 	@Test
 	public void store() throws IOException {
     	
-        InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+		//InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+		InputStream fileStream = new FileInputStream("out.edit-enwiki.gz");
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
         BufferedReader buffered = new BufferedReader(decoder);
@@ -113,7 +115,8 @@ public class EvolvingGraphTest {
         long minTimestamp = findMinimumTimestamp();
         LocalDate minLocalDate = unixEpochToLocalDate(minTimestamp);
         
-        fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+        //fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+        fileStream = new FileInputStream("out.edit-enwiki.gz");
         gzipStream = new GZIPInputStream(fileStream);
         decoder = new InputStreamReader(gzipStream, "UTF-8");
         buffered = new BufferedReader(decoder);
@@ -121,7 +124,7 @@ public class EvolvingGraphTest {
         // Skip the header of the file
         buffered.readLine();
         // The file we will write the results to 
-        writer = new BufferedWriter(new FileWriter("timestamps.txt"));
+        writer = new BufferedWriter(new FileWriter("timestamps1.txt"));
         // Maintain an index of positions in the file for each node -> timestamps line
         // The number of nodes is known beforehand, set initial capacity accordingly
         IntArrayList offsetsIndex= new IntArrayList();
