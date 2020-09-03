@@ -64,11 +64,25 @@ public class EvolvingGraphTest {
 	public int writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,Long> currentNeighborsWithTimestamps, BufferedWriter writer, LocalDate minLocalDate) throws IOException {
 
 		// Returns the number of characters appended to the file
+		
+		// The first timestamp is written with respect to difference
+		// in days from the minimum timestamp in the file
 		int ret = 0;
+		
+		LocalDate previousNeighborDate = minLocalDate;
+		
 		for(int i=0; i < outDegree; i++) {
 			long seconds = currentNeighborsWithTimestamps.get(neighbors[i]);
 			LocalDate ld = unixEpochToLocalDate(seconds);
-			long daysBetween = ChronoUnit.DAYS.between(minLocalDate, ld);
+			long daysBetween = -1;
+			daysBetween = ChronoUnit.DAYS.between(previousNeighborDate, ld);
+			previousNeighborDate = ld;
+			if(daysBetween >= 0) {
+				daysBetween = 2*daysBetween;
+			}
+			else {
+				daysBetween = 2*(-daysBetween) + 1;
+			}
     		String tmp = Long.toString(daysBetween);
 			writer.append(tmp);
     		if(i != outDegree-1) {
@@ -87,7 +101,7 @@ public class EvolvingGraphTest {
 	public void store() throws IOException {
     	
 		//InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
-		InputStream fileStream = new FileInputStream("out.edit-enwiki.gz");
+		InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
         BufferedReader buffered = new BufferedReader(decoder);
@@ -116,7 +130,7 @@ public class EvolvingGraphTest {
         LocalDate minLocalDate = unixEpochToLocalDate(minTimestamp);
         
         //fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
-        fileStream = new FileInputStream("out.edit-enwiki.gz");
+        fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
         gzipStream = new GZIPInputStream(fileStream);
         decoder = new InputStreamReader(gzipStream, "UTF-8");
         buffered = new BufferedReader(decoder);
