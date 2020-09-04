@@ -1037,29 +1037,29 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
 
             // The extra part is made by the contribution of intervals, if any, and by the residuals iterator.
             final LazyIntIterator extraIterator = intervalCount == 0
-                ? residualIterator
-                : (residualCount == 0
-                    ? (LazyIntIterator)new IntIntervalSequenceIterator(left, len)
-                    : (LazyIntIterator)new MergedIntIterator(new IntIntervalSequenceIterator(left, len), residualIterator)
-                    );
+                    ? residualIterator
+                            : (residualCount == 0
+                            ? (LazyIntIterator)new IntIntervalSequenceIterator(left, len)
+                                    : (LazyIntIterator)new MergedIntIterator(new IntIntervalSequenceIterator(left, len), residualIterator)
+                                    );
 
             final LazyIntIterator blockIterator = ref <= 0
-                ? null
-                : new MaskedIntIterator(
-                                        // ...block for masking copy and...
-                                        block,
-                                        // ...the reference list (either computed recursively or stored in window)...
-                                        window != null
-                                        ? LazyIntIterators.wrap(window[refIndex], outd[refIndex])
-                                        :
-                                            // This is the recursive lazy part of the construction.
-                                            successors(x - ref, isMemory ? new InputBitStream(graphMemory) : new InputBitStream(isMapped ? mappedGraphStream.copy() : new FastMultiByteArrayInputStream(graphStream), 0), null, null)
-                                        );
+                    ? null
+                            : new MaskedIntIterator(
+                                    // ...block for masking copy and...
+                                    block,
+                                    // ...the reference list (either computed recursively or stored in window)...
+                                    window != null
+                                    ? LazyIntIterators.wrap(window[refIndex], outd[refIndex])
+                                            :
+                                                // This is the recursive lazy part of the construction.
+                                                successors(x - ref, isMemory ? new InputBitStream(graphMemory) : new InputBitStream(isMapped ? mappedGraphStream.copy() : new FastMultiByteArrayInputStream(graphStream), 0), null, null)
+                                    );
 
             if (ref <= 0) return extraIterator;
             else return extraIterator == null
-                     ? blockIterator
-                     : (LazyIntIterator)new MergedIntIterator(blockIterator, extraIterator);
+                    ? blockIterator
+                            : (LazyIntIterator)new MergedIntIterator(blockIterator, extraIterator);
 
         }
         catch (final IOException e) {
@@ -1580,6 +1580,40 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
         return nInterval;
     }
 
+    protected static int intervalizeMultiples(int[] residual, int residualCount, IntArrayList left, IntArrayList len, IntArrayList residuals) {
+
+        int nMultiples = 0;
+        left.clear(); len.clear(); residuals.clear();
+        if (residualCount == 0) {
+            return 0;
+        }
+        int curLeft = residual[0];
+        int curLen = 1;
+
+        for (int i = 1; i < residualCount; i++) {
+            if (residual[i] == residual[i - 1]) {
+                curLen++;
+            } else {
+                if (curLen > 1) {
+                    left.add(curLeft);
+                    len.add(curLen);
+                    nMultiples++;
+                } else {
+                    residuals.add(curLeft);
+                }
+                curLeft = residual[i];
+                curLen = 1;
+            }
+        }
+        if (curLen > 1) {
+            left.add(curLeft);
+            len.add(curLen);
+            nMultiples++;
+        } else {
+            residuals.add(curLeft);
+        }
+        return nMultiples;
+    }
 
 
 
@@ -1599,7 +1633,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
      * @throws IOException if some exception is raised while writing the graph.
      */
     public static void store(final ImmutableGraph graph, final CharSequence basename, final int windowSize, final int maxRefCount, final int minIntervalLength,
-        final int zetaK, final int flags, final int numberOfThreads, final ProgressLogger pl) throws IOException {
+            final int zetaK, final int flags, final int numberOfThreads, final ProgressLogger pl) throws IOException {
         final BVMultiGraph g = new BVMultiGraph();
         if (windowSize != -1) g.windowSize = windowSize;
         if (maxRefCount != -1) g.maxRefCount = maxRefCount;
@@ -1622,7 +1656,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
      * @throws IOException if some exception is raised while writing the graph.
      */
     public static void store(final ImmutableGraph graph, final CharSequence basename, final int windowSize, final int maxRefCount, final int minIntervalLength,
-        final int zetaK, final int flags, final ProgressLogger pl) throws IOException {
+            final int zetaK, final int flags, final ProgressLogger pl) throws IOException {
         BVMultiGraph.store(graph, basename, windowSize, maxRefCount, minIntervalLength, zetaK, flags, 0, pl);
     }
 
@@ -1638,7 +1672,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
      * @throws IOException if some exception is raised while writing the graph.
      */
     public static void store(final ImmutableGraph graph, final CharSequence basename, final int windowSize, final int maxRefCount, final int minIntervalLength,
-        final int zetaK, final int flags) throws IOException {
+            final int zetaK, final int flags) throws IOException {
         BVMultiGraph.store(graph, basename, windowSize, maxRefCount, minIntervalLength, zetaK, flags, 0, (ProgressLogger)null);
     }
 
@@ -1656,7 +1690,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
      * @throws IOException if some exception is raised while writing the graph.
      */
     public static void store(final ImmutableGraph graph, final CharSequence basename, final int windowSize, final int maxRefCount, final int minIntervalLength,
-        final int zetaK, final int flags, final int numberOfThreads) throws IOException {
+            final int zetaK, final int flags, final int numberOfThreads) throws IOException {
         BVMultiGraph.store(graph, basename, windowSize, maxRefCount, minIntervalLength, zetaK, flags, numberOfThreads, (ProgressLogger)null);
     }
 
@@ -1706,9 +1740,12 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
      * @param bin the bins.
      */
     protected static void updateBins(final int currNode, final int[] list, final int length, final long[] bin) {
-        for(int i = length - 1; i-- != 0;) bin[Fast.mostSignificantBit(list[i + 1] - list[i])]++;
-        final int msb = Fast.mostSignificantBit(Fast.int2nat((long)list[0] - currNode));
-        if (msb >= 0) bin[msb]++;
+        try {
+            for(int i = length - 1; i-- != 0;) bin[Fast.mostSignificantBit(list[i + 1] - list[i])]++;
+            final int msb = Fast.mostSignificantBit(Fast.int2nat((long)list[0] - currNode));
+            if (msb >= 0) bin[msb]++;
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
     }
 
     @SuppressWarnings("unused")
@@ -1754,7 +1791,8 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
 
         /** Scratch variables used by the {@link #diffComp(OutputBitStream, int, int, int[], int, int[], int, boolean)} method. */
         private final IntArrayList extras = new IntArrayList(), blocks = new IntArrayList(), residuals = new IntArrayList(),
-            left = new IntArrayList(), len = new IntArrayList();
+                left = new IntArrayList(), len = new IntArrayList();
+        private final IntArrayList leftMultiple = new IntArrayList(), lenMultiple = new IntArrayList(), finalResiduals = new IntArrayList();
         private OutputBitStream graphObs;
         public long graphWrittenBits;
         public long offsetsWrittenBits;
@@ -1885,7 +1923,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
             // Finally, we write the extra list.
             if (extraCount > 0) {
 
-                final int residual[], residualCount;
+                int residual[], residualCount;
 
                 if (minIntervalLength != NO_INTERVALS) {
                     // If we are to produce intervals, we first compute them.
@@ -1926,6 +1964,10 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                     residual = extras.elements();
                     residualCount = extras.size();
                 }
+
+                final int multipleCount = intervalizeMultiples(residual, residualCount, leftMultiple, lenMultiple, finalResiduals);
+                residual = finalResiduals.elements();
+                residualCount = finalResiduals.size();
 
                 if (STATS) if (forReal) residualCountStats.println(residualCount);
 
@@ -2101,9 +2143,9 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                 if (t.nodeIterator == null) continue;
                 v += CompressionThread.class.getField(fieldName).getLong(t);
             }
-            catch (final Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
+        catch (final Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
         return v;
     }
 
@@ -2116,9 +2158,9 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                 final long[] s = (long[])CompressionThread.class.getField(fieldName).get(t);
                 for(int i = stats.length; i-- != 0;) stats[i] += s[i];
             }
-            catch (final Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
+        catch (final Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
         return stats;
     }
 
@@ -2173,9 +2215,9 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
             try {
                 executorCompletionService.take().get();
             }
-            catch(final Exception e) {
-                problem = e.getCause(); // We keep only the last one. They will be logged anyway.
-            }
+        catch(final Exception e) {
+            problem = e.getCause(); // We keep only the last one. They will be logged anyway.
+        }
 
         executorService.shutdown();
         if (problem != null) {
@@ -2333,13 +2375,13 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
         int n = numNodes();
         long lastOffset = 0;
         while(n-- != 0) {
-                // We fetch the current position of the underlying input bit stream, which is at the start of the next node.
-                writeOffset(obs, nodeIterator.ibs.readBits() - lastOffset);
-                lastOffset = nodeIterator.ibs.readBits();
-                nodeIterator.nextInt();
-                nodeIterator.outdegree();
-                nodeIterator.successorArray();
-                if (pl != null) pl.update();
+            // We fetch the current position of the underlying input bit stream, which is at the start of the next node.
+            writeOffset(obs, nodeIterator.ibs.readBits() - lastOffset);
+            lastOffset = nodeIterator.ibs.readBits();
+            nodeIterator.nextInt();
+            nodeIterator.outdegree();
+            nodeIterator.successorArray();
+            if (pl != null) pl.update();
         }
         writeOffset(obs, nodeIterator.ibs.readBits() - lastOffset);
     }
@@ -2369,7 +2411,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                         new Switch("degrees", 'd', "degrees", "Stores the outdegrees of all nodes using &gamma; coding."),
                         new UnflaggedOption("sourceBasename", JSAP.STRING_PARSER, JSAP.NO_DEFAULT, JSAP.REQUIRED, JSAP.NOT_GREEDY, "The basename of the source graph, or a source spec if --spec was given; it is immaterial when --once is specified."),
                         new UnflaggedOption("destBasename", JSAP.STRING_PARSER, JSAP.NO_DEFAULT, JSAP.NOT_REQUIRED, JSAP.NOT_GREEDY, "The basename of the destination graph; if omitted, no recompression is performed. This is useful in conjunction with --offsets and --list."),
-                    }
+        }
                 );
 
         final JSAPResult jsapResult = jsap.parse(args);
@@ -2423,13 +2465,13 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
             if (! (graph instanceof BVMultiGraph)) throw new IllegalArgumentException("The source graph is not a BVGraph");
             final BVMultiGraph bvGraph = (BVMultiGraph)graph;
             if (writeOffsets) {
-                    final OutputBitStream offsets = new OutputBitStream(graph.basename() + OFFSETS_EXTENSION, 64 * 1024);
-                    pl.expectedUpdates = graph.numNodes();
-                    pl.start("Writing offsets...");
-                    ((BVMultiGraph)graph).writeOffsets(offsets, pl);
-                    offsets.close();
-                    pl.count = graph.numNodes();
-                    pl.done();
+                final OutputBitStream offsets = new OutputBitStream(graph.basename() + OFFSETS_EXTENSION, 64 * 1024);
+                pl.expectedUpdates = graph.numNodes();
+                pl.start("Writing offsets...");
+                ((BVMultiGraph)graph).writeOffsets(offsets, pl);
+                offsets.close();
+                pl.count = graph.numNodes();
+                pl.done();
             }
             if (list) {
                 final InputBitStream offsets = new InputBitStream(graph.basename() + OFFSETS_EXTENSION);
