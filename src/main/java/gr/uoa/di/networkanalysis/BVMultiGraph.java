@@ -2354,11 +2354,13 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
         properties.setProperty("avgbitsforblocks", format.format((double)aggregateLong(compressionThread, "bitsForBlocks") / n));
         properties.setProperty("avgbitsforresiduals", format.format((double)aggregateLong(compressionThread, "bitsForResiduals") / n));
         properties.setProperty("avgbitsforintervals", format.format((double)aggregateLong(compressionThread, "bitsForIntervals") / n));
+        properties.setProperty("avgbitsformultiples", format.format((double)aggregateLong(compressionThread, "bitsForMultiples") / n));
         properties.setProperty("bitsforoutdegrees", Long.toString(aggregateLong(compressionThread, "bitsForOutdegrees")));
         properties.setProperty("bitsforreferences", Long.toString(aggregateLong(compressionThread, "bitsForReferences")));
         properties.setProperty("bitsforblocks", Long.toString(aggregateLong(compressionThread, "bitsForBlocks")));
         properties.setProperty("bitsforresiduals", Long.toString(aggregateLong(compressionThread, "bitsForResiduals")));
         properties.setProperty("bitsforintervals", Long.toString(aggregateLong(compressionThread, "bitsForIntervals")));
+        properties.setProperty("bitsformultiples", Long.toString(aggregateLong(compressionThread, "bitsForMultiples")));
         properties.setProperty(ImmutableGraph.GRAPHCLASS_PROPERTY_KEY, this.getClass().getName());
         properties.setProperty("version", String.valueOf(BVGRAPH_VERSION));
         final FileOutputStream propertyFile = new FileOutputStream(basename + PROPERTIES_EXTENSION);
