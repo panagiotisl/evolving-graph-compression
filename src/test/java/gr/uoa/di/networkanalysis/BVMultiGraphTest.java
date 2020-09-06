@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
 import org.junit.Test;
@@ -45,14 +46,21 @@ public class BVMultiGraphTest {
         ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
         BVMultiGraph.store(inputGraph, basename);
         BVMultiGraph bvgraph = BVMultiGraph.load(basename);
-        System.out.println(bvgraph.numNodes());
-        System.out.println(bvgraph.numArcs());
+
+        Assert.assertEquals(52, bvgraph.numNodes());
+        Assert.assertEquals(33, bvgraph.numArcs());
+
+        System.out.println(Arrays.toString(bvgraph.successorArray(1)));
+        System.out.println(Arrays.toString(bvgraph.successorArray(2)));
+        System.out.println(Arrays.toString(bvgraph.successorArray(3)));
+        System.out.println(Arrays.toString(bvgraph.successorArray(4)));
+        System.out.println(Arrays.toString(bvgraph.successorArray(5)));
     }
 
     @Test
     public void testIntervalizeMultiples() {
 
-        int[] residual = {4, 4, 4, 6, 7, 8, 8};
+        int[] extras = {4, 4, 4, 6, 7, 8, 8};
         IntArrayList left = new IntArrayList();
         IntArrayList leftExpected = new IntArrayList();
         leftExpected.add(4);
@@ -65,7 +73,7 @@ public class BVMultiGraphTest {
         IntArrayList residualsExpected = new IntArrayList();
         residualsExpected.add(6);
         residualsExpected.add(7);
-        int nMultiples = BVMultiGraph.intervalizeMultiples(residual, residual.length, left, len, residuals);
+        int nMultiples = BVMultiGraph.intervalizeMultiples(extras, extras.length, left, len, residuals);
 
         Assert.assertEquals(2, nMultiples);
         Assert.assertEquals(leftExpected, left);
