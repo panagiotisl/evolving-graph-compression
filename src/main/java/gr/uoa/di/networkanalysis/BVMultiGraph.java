@@ -963,6 +963,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
      *
      */
     protected LazyIntIterator successors(final int x, final InputBitStream ibs, final int window[][], final int outd[]) throws IllegalStateException {
+        System.out.println("Called: " + x);
         final int ref, refIndex;
         int i, extraCount, blockCount = 0;
         int[] block = null, left = null, len = null, leftMultiples = null, lenMultiples = null;
@@ -1027,7 +1028,6 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                     for (i = 1; i < multiplesCount; i++) {
                         leftMultiples[i] = prev = ibs.readGamma() + prev + 1;
                         lenMultiples[i] = ibs.readGamma();
-                        prev += lenMultiples[i];
                         extraCount -= lenMultiples[i];
                     }
                 }
@@ -1041,6 +1041,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
 
                 // Prepare to read intervals, if any
                 if (minIntervalLength != NO_INTERVALS && (intervalCount = ibs.readGamma()) != 0) {
+
 
                     int prev = 0; // Holds the last integer in the last interval.
                     left = new int[intervalCount];
@@ -1067,11 +1068,24 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
             final LazyIntIterator residualIterator = residualCount == 0 ? null : new ResidualIntIterator(this, ibs, residualCount, x);
 
             // The extra part is made by the contribution of intervals, if any, and by the residuals iterator.
+            final LazyIntIterator intervalMultipleIterator;
+            if (intervalCount + multiplesCount > 0) {
+                if (multiplesCount <= 0) {
+                    intervalMultipleIterator = new IntIntervalSequenceIterator(left, len);
+                } else if (intervalCount <= 0) {
+                    intervalMultipleIterator = new IntMultiplesSequenceIterator(leftMultiples, lenMultiples);
+                } else {
+                    intervalMultipleIterator = new MergedIntIterator(new IntIntervalSequenceIterator(left, len), new IntMultiplesSequenceIterator(leftMultiples, lenMultiples));
+                }
+            } else {
+                intervalMultipleIterator = null;
+            }
+
             final LazyIntIterator extraIterator = intervalCount + multiplesCount == 0
                     ? residualIterator
                             : (residualCount == 0
-                            ? (LazyIntIterator)new IntIntervalMultiplesSequenceIterator(left, len, leftMultiples, lenMultiples)
-                                    : (LazyIntIterator)new MergedIntIterator(new IntIntervalMultiplesSequenceIterator(left, len, leftMultiples, lenMultiples), residualIterator)
+                            ? (LazyIntIterator) intervalMultipleIterator
+                                    : (LazyIntIterator)new MergedIntIterator(intervalMultipleIterator, residualIterator)
                                     );
 
             final LazyIntIterator blockIterator = ref <= 0
@@ -1086,6 +1100,8 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                                                 // This is the recursive lazy part of the construction.
                                                 successors(x - ref, isMemory ? new InputBitStream(graphMemory) : new InputBitStream(isMapped ? mappedGraphStream.copy() : new FastMultiByteArrayInputStream(graphStream), 0), null, null)
                                     );
+
+            System.out.println(x + ": " + multiplesCount + " " + intervalCount + " " + blockCount + " " + residualCount);
 
             if (ref <= 0) return extraIterator;
             else return extraIterator == null
@@ -1827,7 +1843,9 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
         /** Scratch variables used by the {@link #diffComp(OutputBitStream, int, int, int[], int, int[], int, boolean)} method. */
         private final IntArrayList extras = new IntArrayList(), blocks = new IntArrayList(), residuals = new IntArrayList(),
                 left = new IntArrayList(), len = new IntArrayList();
-        private final IntArrayList leftMultiple = new IntArrayList(), lenMultiple = new IntArrayList(), finalResiduals = new IntArrayList();
+        private final IntArrayList leftMultiple = new IntArrayList(), lenMultiple = new IntArrayList(),
+                finalResiduals = new IntArrayList(), finalRefList = new IntArrayList(), tempLeft = new IntArrayList(),
+                tempLen = new IntArrayList();
         private OutputBitStream graphObs;
         public long graphWrittenBits;
         public long offsetsWrittenBits;
@@ -1851,13 +1869,27 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
          * @param forReal if true, we are really writing data (i.e., <code>obs</code> is not just a bit count stream).
          * @return the number of bits written.
          */
-        private int diffComp(final OutputBitStream obs, final int currNode, final int ref, final int refList[], int refLen, int currList[], int currLen, final boolean forReal) throws IOException {
+        private int diffComp(final OutputBitStream obs, final int currNode, final int ref, int refList[], int refLen, int currList[], int currLen, final boolean forReal) throws IOException {
             // Bits already written onto the output bit stream
             final long writtenBitsAtStart = obs.writtenBits();
 
             final int multipleCount = intervalizeMultiples(currList, currLen, leftMultiple, lenMultiple, finalResiduals);
+
+//            if (currNode == 10) {
+//                System.out.println(String.format("10:\n%s\n%s", Arrays.toString(currList).substring(0, 100), Arrays.toString(finalResiduals.elements()).substring(0, 100)));
+//            }
+
             currList = finalResiduals.elements();
             currLen = finalResiduals.size();
+
+//            intervalizeMultiples(refList, refLen, tempLeft, tempLen, finalRefList);
+
+//            if (currNode == 10) {
+//                System.out.println(String.format("10-REF:\n%s\n%s", Arrays.toString(refList).substring(0, 100), Arrays.toString(finalRefList.elements()).substring(0, 100)));
+//            }
+
+//            refList = finalRefList.elements();
+//            refLen = finalRefList.size();
 
             // We build the list of blocks copied and skipped (alternatively) from the previous list.
             int i, j = 0, k = 0, prev = 0, currBlockLen = 0, t;
@@ -1972,13 +2004,8 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
 
                 // We write out the multiples.
                 for(i = 0; i < multipleCount; i++) {
-                    try {
-                        if (i == 0) t = obs.writeLongGamma(Fast.int2nat((long)(prev = leftMultiple.getInt(i)) - currNode));
-                        else t = obs.writeGamma(leftMultiple.getInt(i) - prev - 1);
-                    } catch (IllegalArgumentException e) {
-                        System.err.println(multipleCount + " " + leftMultiple + " " + lenMultiple);
-                        throw e;
-                    }
+                    if (i == 0) t = obs.writeLongGamma(Fast.int2nat((long)(prev = leftMultiple.getInt(i)) - currNode));
+                    else t = obs.writeGamma(leftMultiple.getInt(i) - prev - 1);
                     if (forReal) bitsForMultiples += t;
                     currIntLen = lenMultiple.getInt(i);
                     prev = leftMultiple.getInt(i);
@@ -2001,6 +2028,11 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                 if (minIntervalLength != NO_INTERVALS) {
                     // If we are to produce intervals, we first compute them.
                     final int intervalCount = intervalize(extras, minIntervalLength, left, len, residuals);
+
+//                    if (currNode == 11 || currNode == 8) {
+//                        System.out.println(String.format("11: %d - %d - %d - %s", intervalCount, blockCount, leftMultiple.size(), Arrays.toString(leftMultiple.elements())));
+//                    }
+
 
                     // We write the number of intervals.
                     t = obs.writeGamma(intervalCount);
@@ -2037,7 +2069,6 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                     residual = extras.elements();
                     residualCount = extras.size();
                 }
-
 
                 if (STATS) if (forReal) residualCountStats.println(residualCount);
 

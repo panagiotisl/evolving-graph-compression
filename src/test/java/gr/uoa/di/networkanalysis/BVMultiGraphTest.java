@@ -4,26 +4,36 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import org.junit.Test;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
+import it.unimi.dsi.webgraph.LazyIntIterator;
+import it.unimi.dsi.webgraph.NodeIterator;
+
 import org.junit.Assert;
 
 public class BVMultiGraphTest {
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testWebGraphSize() throws IOException {
 
-        InputStream fileStream = new FileInputStream("out.test.gz");
+        String graph = "out.test4.gz";
+
+        InputStream fileStream = new FileInputStream(graph);
         //        InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
@@ -45,16 +55,54 @@ public class BVMultiGraphTest {
 
         ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
         BVMultiGraph.store(inputGraph, basename);
-        BVMultiGraph bvgraph = BVMultiGraph.load(basename);
+        BVMultiGraph bvMultiGraph = BVMultiGraph.load(basename);
 
-        Assert.assertEquals(52, bvgraph.numNodes());
-        Assert.assertEquals(33, bvgraph.numArcs());
+//        Assert.assertEquals(52, bvMultiGraph.numNodes());
+//        Assert.assertEquals(33, bvMultiGraph.numArcs());
 
-        System.out.println(Arrays.toString(bvgraph.successorArray(1)));
-        System.out.println(Arrays.toString(bvgraph.successorArray(2)));
-        System.out.println(Arrays.toString(bvgraph.successorArray(3)));
-        System.out.println(Arrays.toString(bvgraph.successorArray(4)));
-        System.out.println(Arrays.toString(bvgraph.successorArray(5)));
+//        System.out.println(Arrays.toString(bvMultiGraph.successorArray(1)));
+//        System.out.println(Arrays.toString(bvMultiGraph.successorArray(2)));
+//        System.out.println(Arrays.toString(bvMultiGraph.successorArray(3)));
+//        System.out.println(Arrays.toString(bvMultiGraph.successorArray(4)));
+//        System.out.println("SUC: " + Arrays.toString(bvMultiGraph.successorArray(9)));
+//        System.out.println("SUC: " + Arrays.toString(bvMultiGraph.successorArray(10)));
+
+        try (
+                InputStream fileStream2 = new FileInputStream(graph);
+                InputStream gzipStream2 = new GZIPInputStream(fileStream2);
+                Reader decoder2 = new InputStreamReader(gzipStream2, "UTF-8");
+                BufferedReader br = new BufferedReader(decoder2)){
+            br.readLine();
+            int node = -1;
+            List<Integer> neighbors = null;
+            while((line = br.readLine()) != null) {
+                String[] splits = line.trim().split("\\s");
+                int nodeA = Integer.parseInt(splits[0]);
+                int nodeB = Integer.parseInt(splits[1]);
+                if (nodeA != node) {
+                    if (node != -1) {
+                        LazyIntIterator it = bvMultiGraph.successors(node);
+                        int neighbor;
+                        List<Integer> neighborsResult = new ArrayList<>();
+                        while ((neighbor = it.nextInt()) != -1) {
+                            neighborsResult.add(neighbor);
+                        }
+                        System.out.println("Node: " + node);
+                        if (node == 10) {
+                            System.out.println(neighbors.toString());
+                            System.out.println(neighborsResult.toString());
+                            System.out.println(neighborsResult.stream().sorted().collect(Collectors.toList()).toString());
+                        }
+                        Assert.assertTrue(neighbors.containsAll(neighborsResult));
+                        Assert.assertTrue(neighborsResult.containsAll(neighbors));
+                    }
+                    node = nodeA;
+                    neighbors = new ArrayList<>();
+                }
+                neighbors.add(nodeB);
+            }
+        }
+
     }
 
     @Test
@@ -74,7 +122,9 @@ public class BVMultiGraphTest {
         residualsExpected.add(6);
         residualsExpected.add(7);
         int nMultiples = BVMultiGraph.intervalizeMultiples(extras, extras.length, left, len, residuals);
-
+        System.out.println(Arrays.toString(left.elements()));
+        System.out.println(Arrays.toString(len.elements()));
+        System.out.println(Arrays.toString(residuals.elements()));
         Assert.assertEquals(2, nMultiples);
         Assert.assertEquals(leftExpected, left);
         Assert.assertEquals(lenExpected, len);
