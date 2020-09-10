@@ -20,7 +20,6 @@ import it.unimi.dsi.webgraph.BVGraph;
 
 public class WebGraphSizeTest {
 
-    @Test
     public void testWebGraphSize() throws IOException {
 
         InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
@@ -62,7 +61,7 @@ public class WebGraphSizeTest {
         System.out.println(bvgraph.numArcs());
     }
 
-
+    @Test
     public void computeLLPPermutation() throws FileNotFoundException, IOException{
 
         InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
@@ -89,9 +88,9 @@ public class WebGraphSizeTest {
 
         BVGraph bvgraph = BVGraph.load(basename);
 
-        LayeredLabelPropagation llp = new LayeredLabelPropagation(bvgraph, 0);
+        LayeredLabelPropagation llp = new LayeredLabelPropagation(bvgraph, 23);
 
-        int[] map = llp.computePermutation(new double[]{-5,-2,-.5,-.1,.001,.05,.1,.15,0.2,.3,.5,.8,1,2,3}, null);
+        int[] map = llp.computePermutation(new double[]{.05,.1,.15,0.2}, null);
 
         File file = new File(basename + ".llp.txt");
         // if file doesnt exists, then create it
@@ -110,7 +109,11 @@ public class WebGraphSizeTest {
         line = buffered.readLine();
         while ((line = buffered.readLine()) != null) {
             String[] splits = line.split("\\s");
-            bw.write(map[Integer.parseInt(splits[0])]+" "+map[Integer.parseInt(splits[1])]+" "+splits[2]+"\n");
+            bw.write(
+                    map[Integer.parseInt(splits[0])] + "\t" +
+                            map[Integer.parseInt(splits[1])] + "\t" +
+                            splits[3] + "\t"
+                            + splits[4] + "\n");
         }
 
         bw.close();
