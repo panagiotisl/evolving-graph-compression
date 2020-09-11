@@ -171,7 +171,7 @@ public class EvolvingGraphTest {
                 if(node > previous + 1) {
                 	for(int i = 0; i < node - previous - 1; i++) {
                 		offsetsIndex.add(currentOffset);
-                		writer.append("\n");
+                		//writer.append("\n");
                 		currentOffset += 1;
                 	}
                 }
