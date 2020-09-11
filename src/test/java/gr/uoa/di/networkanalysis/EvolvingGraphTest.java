@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -21,6 +22,7 @@ import java.time.temporal.ChronoUnit;
 import org.junit.Assert;
 import org.junit.Test;
 
+import it.unimi.dsi.bits.Fast;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
@@ -61,7 +63,7 @@ public class EvolvingGraphTest {
 
 	}
 	
-	public int writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,Long> currentNeighborsWithTimestamps, BufferedWriter writer, LocalDate minLocalDate) throws IOException {
+	public int writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps, BufferedWriter writer, LocalDate minLocalDate) throws IOException {
 
 		// Returns the number of characters appended to the file
 		
@@ -72,26 +74,23 @@ public class EvolvingGraphTest {
 		LocalDate previousNeighborDate = minLocalDate;
 		
 		for(int i=0; i < outDegree; i++) {
-			long seconds = currentNeighborsWithTimestamps.get(neighbors[i]);
-			LocalDate ld = unixEpochToLocalDate(seconds);
-			long daysBetween = -1;
-			daysBetween = ChronoUnit.DAYS.between(previousNeighborDate, ld);
-			previousNeighborDate = ld;
-			if(daysBetween >= 0) {
-				daysBetween = 2*daysBetween;
+			ArrayList<Long> secondsList = currentNeighborsWithTimestamps.get(neighbors[i]);
+			for(Long seconds: secondsList) {
+				LocalDate ld = unixEpochToLocalDate(seconds);
+				long daysBetween = -1;
+				daysBetween = ChronoUnit.DAYS.between(previousNeighborDate, ld);
+				previousNeighborDate = ld;
+				daysBetween = Fast.int2nat(daysBetween);
+	    		String tmp = Long.toString(daysBetween);
+				writer.append(tmp);
+	    		if(i != outDegree-1) {
+	    			writer.append(" ");
+	    		}
+	    		else {
+	    			writer.append("\n");
+	    		}
+	    		ret += tmp.length() + 1;
 			}
-			else {
-				daysBetween = 2*(-daysBetween) + 1;
-			}
-    		String tmp = Long.toString(daysBetween);
-			writer.append(tmp);
-    		if(i != outDegree-1) {
-    			writer.append(" ");
-    		}
-    		else {
-    			writer.append("\n");
-    		}
-    		ret += tmp.length() + 1;
     	}
 		
 		return ret;
@@ -120,8 +119,8 @@ public class EvolvingGraphTest {
         String basename = "flickr-growth";
 
         ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
-        BVGraph.store(inputGraph, basename);
-        BVGraph bvgraph = BVGraph.load(basename);
+        BVMultiGraph.store(inputGraph, basename);
+        BVMultiGraph bvgraph = BVMultiGraph.load(basename);
         System.out.println(bvgraph.numNodes());
         System.out.println(bvgraph.numArcs());
         
@@ -148,7 +147,7 @@ public class EvolvingGraphTest {
         writer.write(tmp + "\n");
         // Start reading the file
         int currentNode = 1;
-        Map<Integer,Long> currentNeighborsWithTimestamps = new HashMap<Integer,Long>(); // neighbor -> timestamp
+        Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps = new HashMap<Integer,ArrayList<Long>>(); // neighbor -> timestamp
         while ((line = buffered.readLine()) != null) {
             String[] tokens = line.split("\\s+");
             int node = Integer.parseInt(tokens[0]);
@@ -168,8 +167,10 @@ public class EvolvingGraphTest {
             	
             	// Prepare the variables for the next currentNode
             	currentNode = node;
-            	currentNeighborsWithTimestamps = new HashMap<Integer,Long>();
-            	currentNeighborsWithTimestamps.put(neighbor, timestamp);
+            	currentNeighborsWithTimestamps = new HashMap<Integer,ArrayList<Long>>();
+            	ArrayList<Long> L = new ArrayList<Long>();
+            	L.add(timestamp);
+            	currentNeighborsWithTimestamps.put(neighbor, L);
             	
             	// If at least one node was skipped, add that many empty lines to the file and update the index accordingly
                 if(node > previous + 1) {
@@ -182,7 +183,14 @@ public class EvolvingGraphTest {
             	
             }
             else {
-            	currentNeighborsWithTimestamps.put(neighbor, timestamp);
+            	if(currentNeighborsWithTimestamps.containsKey(neighbor)) {
+            		currentNeighborsWithTimestamps.get(neighbor).add(timestamp);
+            	}
+            	else {
+            		ArrayList<Long> L = new ArrayList<Long>();
+                	L.add(timestamp);
+                	currentNeighborsWithTimestamps.put(neighbor, L);
+            	}
             }
         }
         // Write the last node. It was not written because no change in node != currentNode was detected
