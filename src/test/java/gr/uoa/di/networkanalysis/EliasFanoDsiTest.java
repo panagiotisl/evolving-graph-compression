@@ -9,7 +9,7 @@ import org.junit.Test;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 
-public class EliasFanoTest {
+public class EliasFanoDsiTest {
 
     @Test
     public void test() {

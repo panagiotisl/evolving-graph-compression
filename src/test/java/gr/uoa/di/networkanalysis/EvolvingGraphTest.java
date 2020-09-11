@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,8 @@ import org.junit.Test;
 
 import it.unimi.dsi.bits.Fast;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.io.OutputBitStream;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.webgraph.BVGraph;
@@ -63,13 +66,13 @@ public class EvolvingGraphTest {
 
 	}
 	
-	public int writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps, BufferedWriter writer, LocalDate minLocalDate) throws IOException {
+	public long writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps, OutputBitStream obs, LocalDate minLocalDate) throws IOException {
 
 		// Returns the number of characters appended to the file
 		
 		// The first timestamp is written with respect to difference
 		// in days from the minimum timestamp in the file
-		int ret = 0;
+		long ret = 0;
 		
 		LocalDate previousNeighborDate = minLocalDate;
 		
@@ -77,19 +80,11 @@ public class EvolvingGraphTest {
 			ArrayList<Long> secondsList = currentNeighborsWithTimestamps.get(neighbors[i]);
 			for(Long seconds: secondsList) {
 				LocalDate ld = unixEpochToLocalDate(seconds);
-				long daysBetween = -1;
-				daysBetween = ChronoUnit.DAYS.between(previousNeighborDate, ld);
-				previousNeighborDate = ld;
+				long daysBetween = ChronoUnit.DAYS.between(previousNeighborDate, ld);
 				daysBetween = Fast.int2nat(daysBetween);
-	    		String tmp = Long.toString(daysBetween);
-				writer.append(tmp);
-	    		if(i != outDegree-1) {
-	    			writer.append(" ");
-	    		}
-	    		else {
-	    			writer.append("\n");
-	    		}
-	    		ret += tmp.length() + 1;
+				previousNeighborDate = ld;
+	    		//String tmp = Long.toString(daysBetween);
+				ret += obs.writeLongZeta(daysBetween, BVGraph.DEFAULT_ZETA_K);
 			}
     	}
 		
@@ -137,14 +132,15 @@ public class EvolvingGraphTest {
         // Skip the header of the file
         buffered.readLine();
         // The file we will write the results to 
-        writer = new BufferedWriter(new FileWriter("timestamps1.txt"));
+        //writer = new BufferedWriter(new FileWriter("timestamps1.txt"));
+        final OutputBitStream obs = new OutputBitStream(new FileOutputStream("timestamps1.txt"), 1024 * 1024);
         // Maintain an index of positions in the file for each node -> timestamps line
         // The number of nodes is known beforehand, set initial capacity accordingly
-        IntArrayList offsetsIndex= new IntArrayList();
-        int currentOffset = 0;
+        LongArrayList offsetsIndex= new LongArrayList();
+        long currentOffset = 0L;
         String tmp = Long.toString(minTimestamp);
-        currentOffset += tmp.length() + 1;
-        writer.write(tmp + "\n");
+        currentOffset += obs.writeLong(minTimestamp, 64);
+        //writer.write(tmp + "\n");
         // Start reading the file
         int currentNode = 1;
         Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps = new HashMap<Integer,ArrayList<Long>>(); // neighbor -> timestamp
@@ -162,8 +158,7 @@ public class EvolvingGraphTest {
             	int[] neighbors = bvgraph.successorArray(currentNode);
             	int outDegree = bvgraph.outdegree(currentNode); // successorArray might return extra results, only the [0,outDegree) range is valid
             	offsetsIndex.add(currentOffset);
-            	int charactersWritten = writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, writer, minLocalDate);
-            	currentOffset += charactersWritten;
+            	currentOffset += writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, obs, minLocalDate);
             	
             	// Prepare the variables for the next currentNode
             	currentNode = node;
@@ -197,14 +192,14 @@ public class EvolvingGraphTest {
         int[] neighbors = bvgraph.successorArray(currentNode);
     	int outDegree = bvgraph.outdegree(currentNode);
     	offsetsIndex.add(currentOffset);
-        int charactersWritten = writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, writer, minLocalDate);
-        currentOffset += charactersWritten;
+    	currentOffset += writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, obs, minLocalDate);
         
-        writer.close();
+        
+        obs.close();
         buffered.close();
         
         System.out.println(String.format("Index size: %d", offsetsIndex.size()));
-        System.out.println(offsetsIndex.getInt(offsetsIndex.size() - 1));
+        System.out.println(offsetsIndex.getLong(offsetsIndex.size() - 1));
 
         // Perform compression of the index using EliasFano
         EliasFanoMonotoneLongBigList efmlbl = new EliasFanoMonotoneLongBigList(offsetsIndex);
