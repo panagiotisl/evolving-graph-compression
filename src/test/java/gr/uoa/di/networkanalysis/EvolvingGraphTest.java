@@ -26,6 +26,7 @@ import org.junit.Test;
 import it.unimi.dsi.bits.Fast;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongBigListIterator;
 import it.unimi.dsi.io.OutputBitStream;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
@@ -68,10 +69,11 @@ public class EvolvingGraphTest {
 	
 	public long writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps, OutputBitStream obs, LocalDate minLocalDate) throws IOException {
 
-		// Returns the number of characters appended to the file
+		// Returns the number of bits appended to the file
 		
 		// The first timestamp is written with respect to difference
 		// in days from the minimum timestamp in the file
+		// The rest are written with respect to difference from the previous in the row
 		long ret = 0;
 		
 		LocalDate previousNeighborDate = minLocalDate;
@@ -172,7 +174,8 @@ public class EvolvingGraphTest {
                 	for(int i = 0; i < node - previous - 1; i++) {
                 		offsetsIndex.add(currentOffset);
                 		//writer.append("\n");
-                		currentOffset += 1;
+                		//obs.writeBit(0);
+                		//currentOffset += 1;
                 	}
                 }
             	
@@ -203,7 +206,7 @@ public class EvolvingGraphTest {
 
         // Perform compression of the index using EliasFano
         EliasFanoMonotoneLongBigList efmlbl = new EliasFanoMonotoneLongBigList(offsetsIndex);
-        System.out.println(efmlbl.numBits());
+        System.out.println("EliasFano number of bits: " + efmlbl.numBits());
         Assert.assertTrue(efmlbl.size64() < 4 * 8 * offsetsIndex.size());
         Assert.assertEquals(offsetsIndex.size(), efmlbl.size64());
 	}

@@ -17,10 +17,9 @@ public class EliasFanoDsiTest {
         int number = 0;
         int elements = 100;
         IntArrayList list = new IntArrayList();
-        for (int i = 0; i < elements; i++) {
-            list.add(number);
-            number += random.nextInt(5);
-        }
+        list.add(10);
+        list.add(11);
+        list.add(11);
         EliasFanoMonotoneLongBigList efmlbl = new EliasFanoMonotoneLongBigList(list);
         System.out.println(efmlbl.numBits());
         Assert.assertTrue(efmlbl.size64() < 4 * 8 * elements);
