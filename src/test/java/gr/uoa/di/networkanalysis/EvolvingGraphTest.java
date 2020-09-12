@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -206,6 +207,16 @@ public class EvolvingGraphTest {
 
         // Perform compression of the index using EliasFano
         EliasFanoMonotoneLongBigList efmlbl = new EliasFanoMonotoneLongBigList(offsetsIndex);
+        FileOutputStream fos = new FileOutputStream("eliasfano");
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(efmlbl);
+        oos.close();
+        fos.close();
+        fos = new FileOutputStream("simplelist");
+        oos = new ObjectOutputStream(fos);
+        oos.writeObject(offsetsIndex);
+        oos.close();
+        fos.close();
         System.out.println("EliasFano number of bits: " + efmlbl.numBits());
         Assert.assertTrue(efmlbl.size64() < 4 * 8 * offsetsIndex.size());
         Assert.assertEquals(offsetsIndex.size(), efmlbl.size64());
