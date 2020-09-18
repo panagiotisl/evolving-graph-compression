@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -35,9 +37,8 @@ import it.unimi.dsi.webgraph.BVGraph;
 
 public class EvolvingGraphTest {
 
-	public long findMinimumTimestamp() throws IOException {
-		//InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
-		InputStream fileStream = new FileInputStream("out.edit-enwiki.gz");
+	public long findMinimumTimestamp(String graphFile) throws IOException {
+		InputStream fileStream = new FileInputStream(graphFile);
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
         BufferedReader buffered = new BufferedReader(decoder);
@@ -68,7 +69,7 @@ public class EvolvingGraphTest {
 
 	}
 	
-	public long writeTimestampsToFile(int[] neighbors, int outDegree, Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps, OutputBitStream obs, LocalDate minLocalDate) throws IOException {
+	public long writeTimestampsToFile(int[] neighbors, int outDegree, ArrayList<Long> currentNeighborsTimestamps/*Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps*/, OutputBitStream obs, Instant minInstant) throws IOException {
 
 		// Returns the number of bits appended to the file
 		
@@ -77,28 +78,38 @@ public class EvolvingGraphTest {
 		// The rest are written with respect to difference from the previous in the row
 		long ret = 0;
 		
-		LocalDate previousNeighborDate = minLocalDate;
+		Instant previousNeighborInstant = minInstant;
 		
-		for(int i=0; i < outDegree; i++) {
-			ArrayList<Long> secondsList = currentNeighborsWithTimestamps.get(neighbors[i]);
-			for(Long seconds: secondsList) {
-				LocalDate ld = unixEpochToLocalDate(seconds);
-				long daysBetween = ChronoUnit.DAYS.between(previousNeighborDate, ld);
-				daysBetween = Fast.int2nat(daysBetween);
-				previousNeighborDate = ld;
-	    		//String tmp = Long.toString(daysBetween);
-				ret += obs.writeLongZeta(daysBetween, BVGraph.DEFAULT_ZETA_K);
-			}
-    	}
+//		for(int i=0; i < outDegree; i++) {
+//			ArrayList<Long> secondsList = currentNeighborsWithTimestamps.get(neighbors[i]);
+//			for(Long seconds: secondsList) {
+//				Instant currentNeighborInstant = Instant.ofEpochSecond(seconds);
+//				long periodsBetween = Duration.between(previousNeighborInstant, currentNeighborInstant).toMinutes()/15;
+//				periodsBetween = Fast.int2nat(periodsBetween);
+//				previousNeighborInstant = currentNeighborInstant;
+//	    		//String tmp = Long.toString(daysBetween);
+//				ret += obs.writeLongZeta(periodsBetween, 2 /*BVGraph.DEFAULT_ZETA_K*/);
+//			}
+//		}
+		
+		for(Long seconds: currentNeighborsTimestamps) {
+			Instant currentNeighborInstant = Instant.ofEpochSecond(seconds);
+			long periodsBetween = Duration.between(previousNeighborInstant, currentNeighborInstant).toMinutes()/15;
+			periodsBetween = Fast.int2nat(periodsBetween);
+			previousNeighborInstant = currentNeighborInstant;
+    		//String tmp = Long.toString(daysBetween);
+			ret += obs.writeLongZeta(periodsBetween, 2 /*BVGraph.DEFAULT_ZETA_K*/);
+		}
 		
 		return ret;
 	}
 	
 	@Test
 	public void store() throws IOException {
-    	
-		//InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
-		InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+
+		String graphFile = "out.edit-enwiki.sorted.gz";
+		
+		InputStream fileStream = new FileInputStream(graphFile);
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
         BufferedReader buffered = new BufferedReader(decoder);
@@ -114,7 +125,7 @@ public class EvolvingGraphTest {
         writer.close();
         buffered.close();
 
-        String basename = "flickr-growth";
+        String basename = "edit-enwiki";
 
         ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
         BVMultiGraph.store(inputGraph, basename);
@@ -123,11 +134,10 @@ public class EvolvingGraphTest {
         System.out.println(bvgraph.numArcs());
         
         // Find the minimum timestamp in the file
-        long minTimestamp = findMinimumTimestamp();
-        LocalDate minLocalDate = unixEpochToLocalDate(minTimestamp);
+        long minTimestamp = findMinimumTimestamp(graphFile);
+        Instant minInstant = Instant.ofEpochSecond(minTimestamp);
         
-        //fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
-        fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
+        fileStream = new FileInputStream(graphFile);
         gzipStream = new GZIPInputStream(fileStream);
         decoder = new InputStreamReader(gzipStream, "UTF-8");
         buffered = new BufferedReader(decoder);
@@ -146,7 +156,8 @@ public class EvolvingGraphTest {
         //writer.write(tmp + "\n");
         // Start reading the file
         int currentNode = 1;
-        Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps = new HashMap<Integer,ArrayList<Long>>(); // neighbor -> timestamp
+        //Map<Integer,ArrayList<Long>> currentNeighborsWithTimestamps = new HashMap<Integer,ArrayList<Long>>(); // neighbor -> timestamp
+        ArrayList<Long> currentNeighborsTimestamps = new ArrayList<Long>();
         while ((line = buffered.readLine()) != null) {
             String[] tokens = line.split("\\s+");
             int node = Integer.parseInt(tokens[0]);
@@ -161,14 +172,16 @@ public class EvolvingGraphTest {
             	int[] neighbors = bvgraph.successorArray(currentNode);
             	int outDegree = bvgraph.outdegree(currentNode); // successorArray might return extra results, only the [0,outDegree) range is valid
             	offsetsIndex.add(currentOffset);
-            	currentOffset += writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, obs, minLocalDate);
+            	currentOffset += writeTimestampsToFile(neighbors, outDegree, currentNeighborsTimestamps, obs, minInstant);
             	
             	// Prepare the variables for the next currentNode
             	currentNode = node;
-            	currentNeighborsWithTimestamps = new HashMap<Integer,ArrayList<Long>>();
-            	ArrayList<Long> L = new ArrayList<Long>();
-            	L.add(timestamp);
-            	currentNeighborsWithTimestamps.put(neighbor, L);
+            	//currentNeighborsWithTimestamps = new HashMap<Integer,ArrayList<Long>>();
+            	currentNeighborsTimestamps = new ArrayList<Long>();
+            	//ArrayList<Long> L = new ArrayList<Long>();
+            	//L.add(timestamp);
+            	currentNeighborsTimestamps.add(timestamp);
+            	//currentNeighborsWithTimestamps.put(neighbor, L);
             	
             	// If at least one node was skipped, add that many empty lines to the file and update the index accordingly
                 if(node > previous + 1) {
@@ -182,21 +195,22 @@ public class EvolvingGraphTest {
             	
             }
             else {
-            	if(currentNeighborsWithTimestamps.containsKey(neighbor)) {
-            		currentNeighborsWithTimestamps.get(neighbor).add(timestamp);
-            	}
-            	else {
-            		ArrayList<Long> L = new ArrayList<Long>();
-                	L.add(timestamp);
-                	currentNeighborsWithTimestamps.put(neighbor, L);
-            	}
+//            	if(currentNeighborsWithTimestamps.containsKey(neighbor)) {
+//            		currentNeighborsWithTimestamps.get(neighbor).add(timestamp);
+//            	}
+//            	else {
+//            		ArrayList<Long> L = new ArrayList<Long>();
+//                	L.add(timestamp);
+//                	currentNeighborsWithTimestamps.put(neighbor, L);
+//            	}
+            	currentNeighborsTimestamps.add(timestamp);
             }
         }
         // Write the last node. It was not written because no change in node != currentNode was detected
         int[] neighbors = bvgraph.successorArray(currentNode);
     	int outDegree = bvgraph.outdegree(currentNode);
     	offsetsIndex.add(currentOffset);
-    	currentOffset += writeTimestampsToFile(neighbors, outDegree, currentNeighborsWithTimestamps, obs, minLocalDate);
+    	currentOffset += writeTimestampsToFile(neighbors, outDegree, currentNeighborsTimestamps, obs, minInstant);
         
         
         obs.close();
@@ -220,29 +234,5 @@ public class EvolvingGraphTest {
         System.out.println("EliasFano number of bits: " + efmlbl.numBits());
         Assert.assertTrue(efmlbl.size64() < 4 * 8 * offsetsIndex.size());
         Assert.assertEquals(offsetsIndex.size(), efmlbl.size64());
-	}
-	
-	public void daysBetweenDates() {
-		LocalDate d1 = LocalDate.of(2003, 10, 5);
-		LocalDate d2 = LocalDate.of(2004, 10, 5);
-		long daysBetween = ChronoUnit.DAYS.between(d1, d2);
-		System.out.println(daysBetween);
-	}
-	
-	public void daysBetweenDatesAfterEpochToLocalDateConversion() {
-		
-		long timeInSeconds1 = 1162422000;
-		LocalDateTime ldt1 = LocalDateTime.ofEpochSecond(timeInSeconds1, 0, ZoneOffset.UTC);
-		System.out.println(ldt1.getYear()+ " " + ldt1.getMonthValue() + " " + ldt1.getDayOfMonth());
-		
-		long timeInSeconds2 = 1178748000;
-		LocalDateTime ldt2 = LocalDateTime.ofEpochSecond(timeInSeconds2, 0, ZoneOffset.UTC);
-		System.out.println(ldt2.getYear()+ " " + ldt2.getMonthValue() + " " + ldt2.getDayOfMonth());
-		
-		
-		LocalDate d1 = LocalDate.of(ldt1.getYear(), ldt1.getMonthValue(), ldt1.getDayOfMonth());
-		LocalDate d2 = LocalDate.of(ldt2.getYear(), ldt2.getMonthValue(), ldt2.getDayOfMonth());
-		long daysBetween = ChronoUnit.DAYS.between(d1, d2);
-		System.out.println(daysBetween);
 	}
 }
