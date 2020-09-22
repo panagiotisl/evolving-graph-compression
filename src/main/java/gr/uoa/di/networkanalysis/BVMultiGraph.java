@@ -404,6 +404,9 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
     /** Default minimum interval length. */
     public final static int DEFAULT_MIN_INTERVAL_LENGTH = 4;
 
+    /** Default minimum interval length. */
+    public final static int DEFAULT_MIN_MULTIPLE_LENGTH = 2;
+
     /** The value of <var>k</var> for &zeta;<sub><var>k</var></sub> coding (for residuals). */
     protected int zetaK = DEFAULT_ZETA_K;
 
@@ -1020,13 +1023,13 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
 
                     // Now we read multiples
                     leftMultiples[0] = prev = (int)(Fast.nat2int(ibs.readLongGamma()) + x);
-                    lenMultiples[0] = ibs.readGamma();
+                    lenMultiples[0] = ibs.readGamma() + BVMultiGraph.DEFAULT_MIN_MULTIPLE_LENGTH;
 
                     extraCount -= lenMultiples[0];
 
                     for (i = 1; i < multiplesCount; i++) {
                         leftMultiples[i] = prev = ibs.readGamma() + prev + 1;
-                        lenMultiples[i] = ibs.readGamma();
+                        lenMultiples[i] = ibs.readGamma() + BVMultiGraph.DEFAULT_MIN_MULTIPLE_LENGTH;
                         extraCount -= lenMultiples[i];
                     }
                 }
@@ -1994,7 +1997,7 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                     currIntLen = lenMultiple.getInt(i);
                     prev = leftMultiple.getInt(i);
                     if (forReal) multiplesArcs += currIntLen;
-                    t = obs.writeGamma(currIntLen); // TODO subtract min multiple length
+                    t = obs.writeGamma(currIntLen - BVMultiGraph.DEFAULT_MIN_MULTIPLE_LENGTH);
                     if (forReal) bitsForMultiples += t;
                 }
 
