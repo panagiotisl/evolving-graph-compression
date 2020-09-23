@@ -15,6 +15,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.lucene.util.Counter;
+
 import it.unimi.dsi.bits.Fast;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.io.OutputBitStream;
@@ -24,6 +26,7 @@ import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 public class EvolvingMultiGraph {
 
 	protected String graphFile;
+	protected boolean headers;
 	protected int zetaK;
 	protected String basename;
 	protected String timestampsFile;
@@ -31,9 +34,10 @@ public class EvolvingMultiGraph {
 	protected InstantComparer instantComparer;
 	
 	
-	public EvolvingMultiGraph(String graphFile, int zetaK, String basename, String timestampsFile, String eliasFanoFile, InstantComparer instantComparer) {
+	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, String timestampsFile, String eliasFanoFile, InstantComparer instantComparer) {
 		super();
 		this.graphFile = graphFile;
+		this.headers = headers;
 		this.zetaK = zetaK;
 		this.basename = basename;
 		this.timestampsFile = timestampsFile;
@@ -47,8 +51,10 @@ public class EvolvingMultiGraph {
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
         BufferedReader buffered = new BufferedReader(decoder);
         
-        // Skip the header of the file
-        buffered.readLine();
+        if(headers) {
+        	// Skip the header of the file
+        	buffered.readLine();
+        }
         
         Long minTimestamp = null;
         String line;
@@ -97,11 +103,16 @@ public class EvolvingMultiGraph {
         tempFile.deleteOnExit();
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
-        String line = buffered.readLine();
+        String line;
+        if(headers) {
+        	// Skip the header of the file
+        	buffered.readLine();
+        }
         while ((line = buffered.readLine()) != null) {
             String[] splits = line.split("\\s");
-            writer.write(String.format("%s\t%s\n", splits[0], splits[1]));
+           	writer.write(String.format("%s\t%s\n", splits[0], splits[1]));
         }
+           
         writer.close();
         buffered.close();
 
@@ -119,8 +130,10 @@ public class EvolvingMultiGraph {
         decoder = new InputStreamReader(gzipStream, "UTF-8");
         buffered = new BufferedReader(decoder);
         
-        // Skip the header of the file
-        buffered.readLine();
+        if(headers) {
+        	// Skip the header of the file
+        	buffered.readLine();
+        }
         // The file we will write the results to 
         final OutputBitStream obs = new OutputBitStream(new FileOutputStream(timestampsFile), 1024 * 1024);
         // Maintain an index of positions in the file for each node -> timestamps line
