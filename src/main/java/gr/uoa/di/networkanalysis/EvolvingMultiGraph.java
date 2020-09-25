@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.time.Instant;
@@ -18,7 +19,10 @@ import java.util.zip.GZIPInputStream;
 import org.apache.lucene.util.Counter;
 
 import it.unimi.dsi.bits.Fast;
+import it.unimi.dsi.fastutil.bytes.ByteIterable;
+import it.unimi.dsi.fastutil.bytes.ByteIterator;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.io.InputBitStream;
 import it.unimi.dsi.io.OutputBitStream;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
@@ -29,19 +33,17 @@ public class EvolvingMultiGraph {
 	protected boolean headers;
 	protected int zetaK;
 	protected String basename;
-	protected String timestampsFile;
-	protected String eliasFanoFile;
 	protected InstantComparer instantComparer;
 	
+	protected BVMultiGraph graph;
+	protected EliasFanoMonotoneLongBigList efindex;
 	
-	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, String timestampsFile, String eliasFanoFile, InstantComparer instantComparer) {
+	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, InstantComparer instantComparer) {
 		super();
 		this.graphFile = graphFile;
 		this.headers = headers;
 		this.zetaK = zetaK;
 		this.basename = basename;
-		this.timestampsFile = timestampsFile;
-		this.eliasFanoFile = eliasFanoFile;
 		this.instantComparer = instantComparer;
 	}
 
@@ -135,7 +137,7 @@ public class EvolvingMultiGraph {
         	buffered.readLine();
         }
         // The file we will write the results to 
-        final OutputBitStream obs = new OutputBitStream(new FileOutputStream(timestampsFile), 1024 * 1024);
+        final OutputBitStream obs = new OutputBitStream(new FileOutputStream(basename+".timestamps"), 1024 * 1024);
         // Maintain an index of positions in the file for each node -> timestamps line
         // The number of nodes is known beforehand, set initial capacity accordingly
         LongArrayList offsetsIndex= new LongArrayList();
@@ -183,10 +185,17 @@ public class EvolvingMultiGraph {
 
         // Perform compression of the index using EliasFano
         EliasFanoMonotoneLongBigList efmlbl = new EliasFanoMonotoneLongBigList(offsetsIndex);
-        FileOutputStream fos = new FileOutputStream(eliasFanoFile);
+        FileOutputStream fos = new FileOutputStream(basename+".efindex");
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(efmlbl);
         oos.close();
         fos.close();
+	}
+	
+	public void load() throws Exception {
+		graph = BVMultiGraph.load(basename);
+		FileInputStream fis = new FileInputStream(basename+".efindex");
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		efindex = (EliasFanoMonotoneLongBigList) ois.readObject();
 	}
 }

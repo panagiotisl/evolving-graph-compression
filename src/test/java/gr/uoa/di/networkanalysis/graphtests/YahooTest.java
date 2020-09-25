@@ -13,14 +13,12 @@ public class YahooTest {
 	private static String path = System.getProperty("user.dir");
 
 	@Test
-	public void test() throws Exception {
+	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				path + "\\yahoo-G5-sorted.tsv.gz",
+				"yahoo-G5-sorted.tsv.gz",
 				true,
 				2,
-				path + "\\yahoo",
-				path + "\\yahoo-timestamps",
-				path + "\\yahoo-index", 
+				"yahoo",
 				new InstantComparer() {
 
 					@Override

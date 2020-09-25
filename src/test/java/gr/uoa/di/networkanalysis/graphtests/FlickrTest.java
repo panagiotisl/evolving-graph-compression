@@ -13,19 +13,17 @@ public class FlickrTest {
 	private static String path = System.getProperty("user.dir");
 	
 	@Test
-	public void test() throws Exception {
+	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				path + "\\out.flickr-growth-sorted.gz",
+				"out.flickr-growth-sorted.gz",
 				true,
 				2,
-				path + "\\flickr",
-				path + "\\flickr-timestamps",
-				path + "\\flickr-index", 
+				"flickr",
 				new InstantComparer() {
 					
 					@Override
 					public long instantsDifference(Instant i1, Instant i2) {
-						return Duration.between(i1, i2).toMinutes()/15;
+						return Duration.between(i1, i2).toDays();
 					}
 				});
 
