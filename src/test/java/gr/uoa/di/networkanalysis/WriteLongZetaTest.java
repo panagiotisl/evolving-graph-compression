@@ -59,16 +59,16 @@ public class WriteLongZetaTest {
         obs.writeLongZeta(fourth, BVGraph.DEFAULT_ZETA_K);
         obs.close();
 
-        byte graphMemory[] = null;
+        byte timestampsInMemory[] = null;
         final FileInputStream fis = new FileInputStream("bit-timestamps.txt");
 
         if (fis.getChannel().size() <= Integer.MAX_VALUE) {
-            graphMemory = new byte[(int) fis.getChannel().size()];
-            BinIO.loadBytes(fis, graphMemory);
+            timestampsInMemory = new byte[(int) fis.getChannel().size()];
+            BinIO.loadBytes(fis, timestampsInMemory);
             fis.close();
         }
 
-        InputBitStream ibs = new InputBitStream(graphMemory);
+        InputBitStream ibs = new InputBitStream(timestampsInMemory);
         ibs.position(64);
         long resultFirst = ibs.readLongZeta(BVGraph.DEFAULT_ZETA_K);
         long resultSecond = ibs.readLongZeta(BVGraph.DEFAULT_ZETA_K);
