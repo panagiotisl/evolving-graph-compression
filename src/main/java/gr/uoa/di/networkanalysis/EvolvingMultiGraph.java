@@ -14,18 +14,18 @@ import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.lucene.util.Counter;
-
 import it.unimi.dsi.bits.Fast;
-import it.unimi.dsi.fastutil.bytes.ByteIterable;
-import it.unimi.dsi.fastutil.bytes.ByteIterator;
+import it.unimi.dsi.fastutil.io.BinIO;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.io.InputBitStream;
 import it.unimi.dsi.io.OutputBitStream;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
+import it.unimi.dsi.webgraph.LazyIntIterator;
 
 public class EvolvingMultiGraph {
 
@@ -37,6 +37,8 @@ public class EvolvingMultiGraph {
 	
 	protected BVMultiGraph graph;
 	protected EliasFanoMonotoneLongBigList efindex;
+	protected byte[] timestamps;
+	protected long minTimestamp;
 	
 	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, InstantComparer instantComparer) {
 		super();
@@ -193,9 +195,61 @@ public class EvolvingMultiGraph {
 	}
 	
 	public void load() throws Exception {
+		// Graph
 		graph = BVMultiGraph.load(basename);
+		// EliasFano index
 		FileInputStream fis = new FileInputStream(basename+".efindex");
 		ObjectInputStream ois = new ObjectInputStream(fis);
 		efindex = (EliasFanoMonotoneLongBigList) ois.readObject();
+		ois.close();
+		// Timestamps
+		fis = new FileInputStream(basename+".timestamps");
+		if(fis.getChannel().size() <= Integer.MAX_VALUE) {
+			timestamps = new byte[(int) fis.getChannel().size()];
+			BinIO.loadBytes(fis, timestamps);
+			fis.close();
+		}
+		InputBitStream ibs = new InputBitStream(timestamps);
+		minTimestamp = ibs.readLong(64);
+		ibs.close();
+	}
+
+	public SuccessorIterator successors(int node) throws Exception {
+		return new SuccessorIterator(node);
+	}
+	
+	public class SuccessorIterator implements Iterator<Successor> {
+
+		LazyIntIterator neighborsIterator;
+		InputBitStream ibs;
+		long previous;
+		
+		public SuccessorIterator(int node) throws Exception {
+			neighborsIterator = graph.successors(node);
+			ibs = new InputBitStream(timestamps);
+			ibs.position(efindex.getLong(node-1));
+			previous = -1;
+		}
+	
+		@Override
+		public boolean hasNext() throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Successor next() throws NoSuchElementException {
+			int neighbor = neighborsIterator.nextInt();
+			if(neighbor == -1) {
+				throw new NoSuchElementException();
+			}
+			long t;
+			try {
+				t = Fast.nat2int(ibs.readLongZeta(zetaK));
+			}
+			catch(IOException e) {
+				throw new NoSuchElementException(e.toString());
+			}
+			return new Successor(neighbor, Fast.nat2int(t));
+		}
 	}
 }
