@@ -10,4 +10,5 @@ import java.time.Instant;
 public interface InstantComparer {
 
 	long instantsDifference(Instant i1, Instant i2);
+	long reverse(long previous, long difference);
 }

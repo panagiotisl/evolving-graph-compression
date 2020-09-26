@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -228,7 +229,7 @@ public class EvolvingMultiGraph {
 			neighborsIterator = graph.successors(node);
 			ibs = new InputBitStream(timestamps);
 			ibs.position(efindex.getLong(node-1));
-			previous = -1;
+			previous = minTimestamp;
 		}
 	
 		@Override
@@ -244,12 +245,14 @@ public class EvolvingMultiGraph {
 			}
 			long t;
 			try {
-				t = Fast.nat2int(ibs.readLongZeta(zetaK));
+				t = Fast.nat2int(ibs.readLongZeta(zetaK)); // Read the timestamp and convert it back to an int
+				t = instantComparer.reverse(previous, t);
+				previous = t;
 			}
 			catch(IOException e) {
 				throw new NoSuchElementException(e.toString());
 			}
-			return new Successor(neighbor, Fast.nat2int(t));
+			return new Successor(neighbor, t);
 		}
 	}
 }
