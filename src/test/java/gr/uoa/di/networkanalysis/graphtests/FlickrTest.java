@@ -7,17 +7,18 @@ import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
-import gr.uoa.di.networkanalysis.InstantComparer;
+import gr.uoa.di.networkanalysis.TimestampComparer;
 import gr.uoa.di.networkanalysis.Successor;
 
 public class FlickrTest {
 
 	private static String path = System.getProperty("user.dir");
-	private static InstantComparer ic = new InstantComparer() {
+	private static TimestampComparer ic = new TimestampComparer() {
 		
 		@Override
-		public long instantsDifference(Instant i1, Instant i2) {
-			return Duration.between(i1, i2).toSeconds();
+		public long timestampsDifference(long t1, long t2) {
+			//return Duration.between(i1, i2).toSeconds();
+			return t2-t1;
 		}
 
 		@Override

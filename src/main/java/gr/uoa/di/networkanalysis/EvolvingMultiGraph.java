@@ -34,20 +34,20 @@ public class EvolvingMultiGraph {
 	protected boolean headers;
 	protected int zetaK;
 	protected String basename;
-	protected InstantComparer instantComparer;
+	protected TimestampComparer timestampComparer;
 	
 	protected BVMultiGraph graph;
 	protected EliasFanoMonotoneLongBigList efindex;
 	protected byte[] timestamps;
 	protected long minTimestamp;
 	
-	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, InstantComparer instantComparer) {
+	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, TimestampComparer timestampComparer) {
 		super();
 		this.graphFile = graphFile;
 		this.headers = headers;
 		this.zetaK = zetaK;
 		this.basename = basename;
-		this.instantComparer = instantComparer;
+		this.timestampComparer = timestampComparer;
 	}
 
 	protected long findMinimumTimestamp() throws IOException {
@@ -76,7 +76,7 @@ public class EvolvingMultiGraph {
         return minTimestamp;
 	}
 	
-	protected long writeTimestampsToFile(ArrayList<Long> currentNeighborsTimestamps, OutputBitStream obs, Instant minInstant) throws IOException {
+	protected long writeTimestampsToFile(ArrayList<Long> currentNeighborsTimestamps, OutputBitStream obs, long minTimestamp) throws IOException {
 
 		// Returns the number of bits appended to the file
 		
@@ -85,13 +85,12 @@ public class EvolvingMultiGraph {
 		// The rest are written with respect to difference from the previous in the row
 		long ret = 0;
 		
-		Instant previousNeighborInstant = minInstant;
+		long previousNeighborTimestamp = minTimestamp;
 		
 		for(Long seconds: currentNeighborsTimestamps) {
-			Instant currentNeighborInstant = Instant.ofEpochSecond(seconds);
-			long periodsBetween = instantComparer.instantsDifference(previousNeighborInstant, currentNeighborInstant);
+			long periodsBetween = timestampComparer.timestampsDifference(previousNeighborTimestamp, seconds);
 			periodsBetween = Fast.int2nat(periodsBetween);
-			previousNeighborInstant = currentNeighborInstant;
+			previousNeighborTimestamp = seconds;
 			ret += obs.writeLongZeta(periodsBetween, zetaK);
 		}
 		
@@ -128,7 +127,6 @@ public class EvolvingMultiGraph {
         
         // Find the minimum timestamp in the file
         long minTimestamp = findMinimumTimestamp();
-        Instant minInstant = Instant.ofEpochSecond(minTimestamp);
         
         fileStream = new FileInputStream(graphFile);
         gzipStream = new GZIPInputStream(fileStream);
@@ -160,7 +158,7 @@ public class EvolvingMultiGraph {
             // If you find a new currentNode in the file, write the results you have so far about the current node.
             if(node != currentNode) {
             	offsetsIndex.add(currentOffset);
-            	currentOffset += writeTimestampsToFile(currentNeighborsTimestamps, obs, minInstant);
+            	currentOffset += writeTimestampsToFile(currentNeighborsTimestamps, obs, minTimestamp);
             	
             	// Prepare the variables for the next currentNode
             	currentNode = node;
@@ -181,7 +179,7 @@ public class EvolvingMultiGraph {
         }
         // Write the last node. It was not written because no change in node != currentNode was detected
     	offsetsIndex.add(currentOffset);
-    	currentOffset += writeTimestampsToFile(currentNeighborsTimestamps, obs, minInstant);
+    	currentOffset += writeTimestampsToFile(currentNeighborsTimestamps, obs, minTimestamp);
         
         obs.close();
         buffered.close();
@@ -246,7 +244,7 @@ public class EvolvingMultiGraph {
 			long t;
 			try {
 				t = Fast.nat2int(ibs.readLongZeta(zetaK)); // Read the timestamp and convert it back to an int
-				t = instantComparer.reverse(previous, t);
+				t = timestampComparer.reverse(previous, t);
 				previous = t;
 			}
 			catch(IOException e) {
