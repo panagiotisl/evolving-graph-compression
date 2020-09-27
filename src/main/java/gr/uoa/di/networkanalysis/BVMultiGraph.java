@@ -963,7 +963,6 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
      *
      */
     protected LazyIntIterator successors(final int x, final InputBitStream ibs, final int window[][], final int outd[]) throws IllegalStateException {
-        System.out.println("Called: " + x);
         final int ref, refIndex;
         int i, extraCount, blockCount = 0;
         int[] block = null, left = null, len = null, leftMultiples = null, lenMultiples = null;
@@ -1101,7 +1100,6 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                                                 successors(x - ref, isMemory ? new InputBitStream(graphMemory) : new InputBitStream(isMapped ? mappedGraphStream.copy() : new FastMultiByteArrayInputStream(graphStream), 0), null, null)
                                     );
 
-            System.out.println(x + ": " + multiplesCount + " " + intervalCount + " " + blockCount + " " + residualCount);
 
             if (ref <= 0) return extraIterator;
             else return extraIterator == null
@@ -1875,21 +1873,21 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
 
             final int multipleCount = intervalizeMultiples(currList, currLen, leftMultiple, lenMultiple, finalResiduals);
 
-//            if (currNode == 10) {
-//                System.out.println(String.format("10:\n%s\n%s", Arrays.toString(currList).substring(0, 100), Arrays.toString(finalResiduals.elements()).substring(0, 100)));
-//            }
+            //            if (currNode == 10) {
+            //                System.out.println(String.format("10:\n%s\n%s", Arrays.toString(currList).substring(0, 100), Arrays.toString(finalResiduals.elements()).substring(0, 100)));
+            //            }
 
             currList = finalResiduals.elements();
             currLen = finalResiduals.size();
 
-//            intervalizeMultiples(refList, refLen, tempLeft, tempLen, finalRefList);
+            //            intervalizeMultiples(refList, refLen, tempLeft, tempLen, finalRefList);
 
-//            if (currNode == 10) {
-//                System.out.println(String.format("10-REF:\n%s\n%s", Arrays.toString(refList).substring(0, 100), Arrays.toString(finalRefList.elements()).substring(0, 100)));
-//            }
+            //            if (currNode == 10) {
+            //                System.out.println(String.format("10-REF:\n%s\n%s", Arrays.toString(refList).substring(0, 100), Arrays.toString(finalRefList.elements()).substring(0, 100)));
+            //            }
 
-//            refList = finalRefList.elements();
-//            refLen = finalRefList.size();
+            //            refList = finalRefList.elements();
+            //            refLen = finalRefList.size();
 
             // We build the list of blocks copied and skipped (alternatively) from the previous list.
             int i, j = 0, k = 0, prev = 0, currBlockLen = 0, t;
@@ -2029,9 +2027,9 @@ public class BVMultiGraph extends ImmutableGraph implements CompressionFlags {
                     // If we are to produce intervals, we first compute them.
                     final int intervalCount = intervalize(extras, minIntervalLength, left, len, residuals);
 
-//                    if (currNode == 11 || currNode == 8) {
-//                        System.out.println(String.format("11: %d - %d - %d - %s", intervalCount, blockCount, leftMultiple.size(), Arrays.toString(leftMultiple.elements())));
-//                    }
+                    //                    if (currNode == 11 || currNode == 8) {
+                    //                        System.out.println(String.format("11: %d - %d - %d - %s", intervalCount, blockCount, leftMultiple.size(), Arrays.toString(leftMultiple.elements())));
+                    //                    }
 
 
                     // We write the number of intervals.
