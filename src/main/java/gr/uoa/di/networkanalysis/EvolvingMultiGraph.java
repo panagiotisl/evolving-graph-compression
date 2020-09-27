@@ -243,7 +243,7 @@ public class EvolvingMultiGraph {
 			}
 			long t;
 			try {
-				t = Fast.nat2int(ibs.readLongZeta(zetaK)); // Read the timestamp and convert it back to an int
+				t = Fast.nat2int(ibs.readLongZeta(zetaK));
 				t = timestampComparer.reverse(previous, t);
 				previous = t;
 			}
