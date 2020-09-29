@@ -13,12 +13,12 @@ import org.junit.Test;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.Successor;
 import gr.uoa.di.networkanalysis.TimestampComparer;
-import gr.uoa.di.networkanalysis.TimestampComparerAggregateDays;
+import gr.uoa.di.networkanalysis.TimestampComparerAggregator;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 
 public class WikiTest {
 
-	private static TimestampComparer ic = new TimestampComparerAggregateDays();
+	private static TimestampComparer ic = new TimestampComparerAggregator(1);
 	
 	@Test
 	public void testAll() throws Exception {

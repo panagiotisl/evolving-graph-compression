@@ -14,19 +14,27 @@ import org.junit.Test;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 import gr.uoa.di.networkanalysis.TimestampComparer;
-import gr.uoa.di.networkanalysis.TimestampComparerAggregateSeconds;
+import gr.uoa.di.networkanalysis.TimestampComparerAggregator;
 import gr.uoa.di.networkanalysis.Successor;
 
 public class FlickrTest {
 
-	private static TimestampComparer ic = new TimestampComparerAggregateSeconds();
+	private static final int factor = 2*24*60*60;
+	
+	private static TimestampComparer ic = new TimestampComparerAggregator(factor);
 	
 	@Test
+	public void testAll() throws Exception {
+		testStore();
+		testLoadAndSuccesors();
+	}
+	
+//	@Test
 	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				"out.flickr-growth-sorted.gz",
 				true,
-				2,
+				4,
 				"flickr",
 				ic
 		);
@@ -34,13 +42,13 @@ public class FlickrTest {
 		emg.store();
 	}
 	
-	@Test
+//	@Test
 	public void testLoadAndSuccesors() throws Exception {
 		
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				"out.flickr-growth-sorted.gz",
 				true,
-				2,
+				4,
 				"flickr",
 				ic
 		);
@@ -72,10 +80,7 @@ public class FlickrTest {
         		while(true) {
         			try {
         				Successor s = it.next();
-//        				System.out.println(s.getNeighbor() + " " + s.getTimestamp());
-//        				Assert.assertEquals(s.getNeighbor(), list.get(i).getNeighbor());
-        				Assert.assertEquals((double) s.getTimestamp(), (double) list.get(i).getTimestamp(), 86400);
-        				//Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
+        				Assert.assertEquals((double) s.getTimestamp(), (double) list.get(i).getTimestamp(), factor);
         				i++;
         			}
         			catch(NoSuchElementException e) {
@@ -94,8 +99,7 @@ public class FlickrTest {
 		while(true) {
 			try {
 				Successor s = it.next();
-				Assert.assertEquals(s.getNeighbor(), list.get(i).getNeighbor());
-				Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp(), 86400);
+				Assert.assertEquals((double) s.getTimestamp(), (double) list.get(i).getTimestamp(), factor);
 				i++;
 			}
 			catch(NoSuchElementException e) {
