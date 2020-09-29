@@ -95,7 +95,7 @@ public class WikiTest {
 //						
 						System.out.println(list.get(i).getTimestamp()+" - "+s.getTimestamp()+" - "+current+" - "+s.getNeighbor());
 						Assert.assertEquals("not equal!", (double) s.getTimestamp(), (double)list.get(i).getTimestamp(), 100*86400);
-//						Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
+//						Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp()); COMMENT
 						i++;
 					}
 					catch(NoSuchElementException e) {
