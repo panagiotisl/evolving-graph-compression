@@ -9,32 +9,16 @@ import java.util.zip.GZIPInputStream;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.OrderWith;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.Successor;
 import gr.uoa.di.networkanalysis.TimestampComparer;
+import gr.uoa.di.networkanalysis.TimestampComparerAggregateDays;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 
 public class YahooTest {
 
-	private static String path = System.getProperty("user.dir");
-	private static TimestampComparer ic = new TimestampComparer() {
-
-		@Override
-		public long timestampsDifference(long t1, long t2) {
-			//return Duration.between(i1, i2).toSeconds();
-			return t2-t1;
-		}
-
-		@Override
-		public long reverse(long previous, long difference) {
-			// difference must be a multiple of what was returned in instantsDifference
-			//			long seconds = Duration.ofSeconds(difference).toSeconds();
-			//			return previous + seconds;
-			return previous + difference;
-		}
-	};
+	private static TimestampComparer ic = new TimestampComparerAggregateDays();
 
 	@Test
 	public void testAll() throws Exception {
@@ -91,10 +75,6 @@ public class YahooTest {
 				while(true) {
 					try {
 						Successor s = it.next();
-						//						System.out.println(s.getNeighbor() + " " + s.getTimestamp());
-						//						System.out.println(s.getTimestamp() + " DIFF " + list.get(i).getTimestamp());
-						//						Assert.assertEquals(s.getNeighbor(), list.get(i).getNeighbor());
-						//						Assert.assertEquals("not equal!", (double) s.getTimestamp(), (double)list.get(i).getTimestamp(), 10*86400);
 						Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
 						i++;
 					}
@@ -122,6 +102,8 @@ public class YahooTest {
 				break;
 			}
 		}
+		
+		buffered.close();
 
 	}
 }

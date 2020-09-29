@@ -8,6 +8,7 @@ package gr.uoa.di.networkanalysis;
  */
 public interface TimestampComparer {
 
+	long aggregateMinTimestamp(long min);
 	long timestampsDifference(long t1, long t2);
 	long reverse(long previous, long difference);
 }

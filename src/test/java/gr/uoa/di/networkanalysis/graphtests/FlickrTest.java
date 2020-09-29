@@ -14,27 +14,14 @@ import org.junit.Test;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 import gr.uoa.di.networkanalysis.TimestampComparer;
+import gr.uoa.di.networkanalysis.TimestampComparerAggregateSeconds;
 import gr.uoa.di.networkanalysis.Successor;
 
 public class FlickrTest {
 
-	private static String path = System.getProperty("user.dir");
-	private static TimestampComparer ic = new TimestampComparer() {
-
-		@Override
-		public long timestampsDifference(long t1, long t2) {
-			//return EpochUtils.getDifference(t1, t2, 1, ChronoUnit.DAYS);
-			return (t2-t1)/86400;
-		}
-
-		@Override
-		public long reverse(long previous, long difference) {
-			//return previous + EpochUtils.getTimestampFromAggregation(difference, 1, ChronoUnit.DAYS);
-			return previous + 86400*difference;
-		}
-	};
-
-//	@Test
+	private static TimestampComparer ic = new TimestampComparerAggregateSeconds();
+	
+	@Test
 	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				"out.flickr-growth-sorted.gz",
@@ -116,5 +103,6 @@ public class FlickrTest {
 			}
 		}
         
+		buffered.close();
 	}
 }

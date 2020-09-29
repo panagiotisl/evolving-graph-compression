@@ -12,8 +12,6 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -126,7 +124,7 @@ public class EvolvingMultiGraph {
         //BVMultiGraph bvgraph = BVMultiGraph.load(basename);
         
         // Find the minimum timestamp in the file
-        long minTimestamp = findMinimumTimestamp();
+        long minTimestamp = timestampComparer.aggregateMinTimestamp(findMinimumTimestamp());
         
         fileStream = new FileInputStream(graphFile);
         gzipStream = new GZIPInputStream(fileStream);
@@ -252,5 +250,41 @@ public class EvolvingMultiGraph {
 			}
 			return new Successor(neighbor, t);
 		}
+	}
+	
+	public String getGraphFile() {
+		return graphFile;
+	}
+
+	public boolean isHeaders() {
+		return headers;
+	}
+
+	public int getZetaK() {
+		return zetaK;
+	}
+
+	public String getBasename() {
+		return basename;
+	}
+
+	public TimestampComparer getTimestampComparer() {
+		return timestampComparer;
+	}
+
+	public BVMultiGraph getGraph() {
+		return graph;
+	}
+
+	public EliasFanoMonotoneLongBigList getEfindex() {
+		return efindex;
+	}
+
+	public byte[] getTimestamps() {
+		return timestamps;
+	}
+
+	public long getMinTimestamp() {
+		return minTimestamp;
 	}
 }
