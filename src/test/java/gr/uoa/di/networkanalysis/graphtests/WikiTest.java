@@ -16,6 +16,7 @@ import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.Successor;
 import gr.uoa.di.networkanalysis.TimestampComparer;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
+import gr.uoa.di.networkanalysis.utils.EpochUtils;
 
 public class WikiTest {
 
@@ -24,18 +25,23 @@ public class WikiTest {
 
 		@Override
 		public long timestampsDifference(long t1, long t2) {
-			//return Duration.between(i1, i2).toSeconds();
-			return t2-t1;
+			return (t2-t1)/86400;
 		}
 
 		@Override
 		public long reverse(long previous, long difference) {
-			// difference must be a multiple of what was returned in instantsDifference
-			return previous + difference;
+			// difference must be a multiple of what was returned in timestampsDifference
+			return previous + 86400*difference;
 		}
 	};
 
+
 //	@Test
+//	public void testAll() throws Exception {
+//		testStore();
+//		testLoadAndSuccesors();
+//	}
+	
 	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				"out.edit-enwiki.sorted.gz",
@@ -43,7 +49,7 @@ public class WikiTest {
 				2,
 				"wiki",
 				ic
-				);
+		);
 
 		emg.store();
 	}
@@ -57,7 +63,7 @@ public class WikiTest {
 				2,
 				"wiki",
 				ic
-				);
+		);
 
 		emg.load();
 
@@ -86,11 +92,10 @@ public class WikiTest {
 				while(true) {
 					try {
 						Successor s = it.next();
-//						System.out.println(s.getNeighbor() + " " + s.getTimestamp());
-//						System.out.println(s.getTimestamp() + " DIFF " + list.get(i).getTimestamp());
-//						Assert.assertEquals(s.getNeighbor(), list.get(i).getNeighbor());
-//						Assert.assertEquals("not equal!", (double) s.getTimestamp(), (double)list.get(i).getTimestamp(), 10*86400);
-						Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
+//						
+						System.out.println(list.get(i).getTimestamp()+" - "+s.getTimestamp()+" - "+current+" - "+s.getNeighbor());
+						Assert.assertEquals("not equal!", (double) s.getTimestamp(), (double)list.get(i).getTimestamp(), 100*86400);
+//						Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
 						i++;
 					}
 					catch(NoSuchElementException e) {

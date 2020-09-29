@@ -24,13 +24,13 @@ public class FlickrTest {
 		@Override
 		public long timestampsDifference(long t1, long t2) {
 			//return EpochUtils.getDifference(t1, t2, 1, ChronoUnit.DAYS);
-			return t2-t1;
+			return (t2-t1)/86400;
 		}
 
 		@Override
 		public long reverse(long previous, long difference) {
 			//return previous + EpochUtils.getTimestampFromAggregation(difference, 1, ChronoUnit.DAYS);
-			return previous + difference;
+			return previous + 86400*difference;
 		}
 	};
 
@@ -87,8 +87,8 @@ public class FlickrTest {
         				Successor s = it.next();
 //        				System.out.println(s.getNeighbor() + " " + s.getTimestamp());
 //        				Assert.assertEquals(s.getNeighbor(), list.get(i).getNeighbor());
-//        				Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp(), 86400);
-        				Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
+        				Assert.assertEquals((double) s.getTimestamp(), (double) list.get(i).getTimestamp(), 86400);
+        				//Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
         				i++;
         			}
         			catch(NoSuchElementException e) {
