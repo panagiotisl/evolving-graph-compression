@@ -1,31 +1,19 @@
 package gr.uoa.di.networkanalysis.graphtests;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.zip.GZIPInputStream;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
-import gr.uoa.di.networkanalysis.Successor;
 import gr.uoa.di.networkanalysis.TimestampComparer;
 import gr.uoa.di.networkanalysis.TimestampComparerAggregator;
-import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 
 public class YahooTest {
 
 	private static TimestampComparer ic = new TimestampComparerAggregator(1);
 
-	@Test
-	public void testAll() throws Exception {
-		testStore();
-		testLoadAndSuccesors();
-	}
-	
 	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				"yahoo-G5-sorted.tsv.gz",
@@ -35,75 +23,93 @@ public class YahooTest {
 				ic
 		);
 
-		emg.store();
+		emg.storeBVMultiGraph();
 	}
 
+	@Test
 	public void testLoadAndSuccesors() throws Exception {
 
-		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				"yahoo-G5-sorted.tsv.gz",
-				false,
-				2,
-				"yahoo",
-				ic
-		);
-
-		emg.load();
-
-		FileInputStream fileStream = new FileInputStream("yahoo-G5-sorted.tsv.gz");
-		GZIPInputStream gzipStream = new GZIPInputStream(fileStream);
-		InputStreamReader decoder = new InputStreamReader(gzipStream, "UTF-8");
-		BufferedReader buffered = new BufferedReader(decoder);
-
-		int current = 1;
-		String line = "";//buffered.readLine(); // Get rid of headers
-		ArrayList<Successor> list = new ArrayList<Successor>();
-
-		while ((line = buffered.readLine()) != null) {
-			String[] tokens = line.split("\\s+");
-			int node = Integer.parseInt(tokens[0]);
-			int neighbor = Integer.parseInt(tokens[1]);
-			long timestamp = Long.parseLong(tokens[3]);
-
-			if(node == current) {
-				list.add(new Successor(neighbor, timestamp));
-			}
-			else {
-				// Check the list so far
-				SuccessorIterator it = emg.successors(current);
-				int i = 0;
-				while(true) {
-					try {
-						Successor s = it.next();
-						Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
-						i++;
-					}
-					catch(NoSuchElementException e) {
-						break;
-					}
-				}
-
-				list = new ArrayList<Successor>();
-				list.add(new Successor(neighbor, timestamp));
-				current = node;
-			}
-		}
-
-		SuccessorIterator it = emg.successors(current);
-		int i = 0;
-		while(true) {
-			try {
-				Successor s = it.next();
-				Assert.assertEquals(s.getNeighbor(), list.get(i).getNeighbor());
-				Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp(), 86400);
-				i++;
-			}
-			catch(NoSuchElementException e) {
-				break;
+		int[] aggregations = new int[]{1, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
+		String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
+		
+		BufferedWriter writer = new BufferedWriter(new FileWriter("yahoo-results.txt"));
+		
+		for(int k = 2; k < 8; k++) {
+			for(int j = 0; j < aggregations.length; j++) {
+				
+				EvolvingMultiGraph emg = new EvolvingMultiGraph(
+						"yahoo-G5-sorted.tsv.gz",
+						false,
+						k,
+						"yahoo",
+						new TimestampComparerAggregator(aggregations[j])
+				);
+				
+				emg.storeTimestampsAndIndex();
+				
+				writer.append(String.format("aggregation: %s, k: %d, timestamps: %d, index: %d\n", aggregationsStr[j], k, new File("yahoo.timestamps").length(), new File("yahoo.efindex").length()));
+				writer.flush();
 			}
 		}
 		
-		buffered.close();
+		writer.close();
+
+//		emg.load();
+//
+//		FileInputStream fileStream = new FileInputStream("yahoo-G5-sorted.tsv.gz");
+//		GZIPInputStream gzipStream = new GZIPInputStream(fileStream);
+//		InputStreamReader decoder = new InputStreamReader(gzipStream, "UTF-8");
+//		BufferedReader buffered = new BufferedReader(decoder);
+//
+//		int current = 1;
+//		String line = "";//buffered.readLine(); // Get rid of headers
+//		ArrayList<Successor> list = new ArrayList<Successor>();
+//
+//		while ((line = buffered.readLine()) != null) {
+//			String[] tokens = line.split("\\s+");
+//			int node = Integer.parseInt(tokens[0]);
+//			int neighbor = Integer.parseInt(tokens[1]);
+//			long timestamp = Long.parseLong(tokens[3]);
+//
+//			if(node == current) {
+//				list.add(new Successor(neighbor, timestamp));
+//			}
+//			else {
+//				// Check the list so far
+//				SuccessorIterator it = emg.successors(current);
+//				int i = 0;
+//				while(true) {
+//					try {
+//						Successor s = it.next();
+//						Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp());
+//						i++;
+//					}
+//					catch(NoSuchElementException e) {
+//						break;
+//					}
+//				}
+//
+//				list = new ArrayList<Successor>();
+//				list.add(new Successor(neighbor, timestamp));
+//				current = node;
+//			}
+//		}
+//
+//		SuccessorIterator it = emg.successors(current);
+//		int i = 0;
+//		while(true) {
+//			try {
+//				Successor s = it.next();
+//				Assert.assertEquals(s.getNeighbor(), list.get(i).getNeighbor());
+//				Assert.assertEquals(s.getTimestamp(), list.get(i).getTimestamp(), 86400);
+//				i++;
+//			}
+//			catch(NoSuchElementException e) {
+//				break;
+//			}
+//		}
+//		
+//		buffered.close();
 
 	}
 }

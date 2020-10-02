@@ -77,12 +77,7 @@ public class EvolvingMultiGraph {
 	protected long writeTimestampsToFile(ArrayList<Long> currentNeighborsTimestamps, OutputBitStream obs, long minTimestamp) throws IOException {
 
 		// Returns the number of bits appended to the file
-		
-		// The first timestamp is written with respect to difference
-		// in days from the minimum timestamp in the file
-		// The rest are written with respect to difference from the previous in the row
-		long ret = 0;
-		
+		long ret = 0;	
 		long previousNeighborTimestamp = minTimestamp;
 		
 		for(Long seconds: currentNeighborsTimestamps) {
@@ -96,7 +91,12 @@ public class EvolvingMultiGraph {
 	}
 	
 	public void store() throws IOException {
-
+		storeBVMultiGraph();
+		storeTimestampsAndIndex();
+	}
+	
+	public void storeBVMultiGraph() throws IOException {
+		
 		InputStream fileStream = new FileInputStream(graphFile);
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
@@ -107,7 +107,6 @@ public class EvolvingMultiGraph {
         BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
         String line;
         if(headers) {
-        	// Skip the header of the file
         	buffered.readLine();
         }
         while ((line = buffered.readLine()) != null) {
@@ -120,31 +119,30 @@ public class EvolvingMultiGraph {
 
         ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
         BVMultiGraph.store(inputGraph, basename);
-        // This is not needed anymore
-        //BVMultiGraph bvgraph = BVMultiGraph.load(basename);
-        
-        // Find the minimum timestamp in the file
+	}
+	
+	public void storeTimestampsAndIndex() throws IOException {
+		
+		// Find the minimum timestamp in the file
         long minTimestamp = timestampComparer.aggregateMinTimestamp(findMinimumTimestamp());
         
-        fileStream = new FileInputStream(graphFile);
-        gzipStream = new GZIPInputStream(fileStream);
-        decoder = new InputStreamReader(gzipStream, "UTF-8");
-        buffered = new BufferedReader(decoder);
+        InputStream fileStream = new FileInputStream(graphFile);
+        GZIPInputStream gzipStream = new GZIPInputStream(fileStream);
+        InputStreamReader decoder = new InputStreamReader(gzipStream, "UTF-8");
+        BufferedReader buffered = new BufferedReader(decoder);
         
         if(headers) {
-        	// Skip the header of the file
         	buffered.readLine();
         }
         // The file we will write the results to 
         final OutputBitStream obs = new OutputBitStream(new FileOutputStream(basename+".timestamps"), 1024 * 1024);
-        // Maintain an index of positions in the file for each node -> timestamps line
-        // The number of nodes is known beforehand, set initial capacity accordingly
         LongArrayList offsetsIndex= new LongArrayList();
-        long currentOffset = 0L;
-        currentOffset += obs.writeLong(minTimestamp, 64);
-        // Start reading the file
+        long currentOffset = obs.writeLong(minTimestamp, 64);
+
         int currentNode = 1;
         ArrayList<Long> currentNeighborsTimestamps = new ArrayList<Long>();
+        String line;
+        
         while ((line = buffered.readLine()) != null) {
             String[] tokens = line.split("\\s+");
             int node = Integer.parseInt(tokens[0]);
@@ -163,7 +161,7 @@ public class EvolvingMultiGraph {
             	currentNeighborsTimestamps = new ArrayList<Long>();
             	currentNeighborsTimestamps.add(timestamp);
             	
-            	// If at least one node was skipped, add that many empty lines to the file and update the index accordingly
+            	// If at least one node was skipped, add the current offset to the index for each node in-between
                 if(node > previous + 1) {
                 	for(int i = 0; i < node - previous - 1; i++) {
                 		offsetsIndex.add(currentOffset);

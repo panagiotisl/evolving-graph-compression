@@ -19,7 +19,7 @@ import gr.uoa.di.networkanalysis.Successor;
 
 public class FlickrTest {
 
-	private static final int factor = 2*24*60*60;
+	private static final int factor = 24*60*60;
 	
 	private static TimestampComparer ic = new TimestampComparerAggregator(factor);
 	
