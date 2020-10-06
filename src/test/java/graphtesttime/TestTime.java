@@ -13,23 +13,28 @@ public class TestTime {
 	private static final Random random = new Random();
 	
 	private static final int factor = 1;
-	
+	private static int k = 2;
+
+	//Flickr
+	private static int firstLabel = 1;
+	private static int lastLabel = 2_302_925;
 	private static final String graphFile = "out.flickr-growth-sorted.gz";
 	private static final String basename = "flickr";
 	private static boolean headers = true;
-	private static int k = 2;
-	
-	//Flickr
-	private static int firstLabel = 1;
-	private static int lastLabel = 2302925;
 	
 	//Wiki
 //	private static int firstLabel = 1;
 //	private static int lastLabel = 2302925;
+//	private static final String graphFile = "out.edit-enwiki.sorted.gz";
+//	private static final String basename = "wiki";
+//	private static boolean headers = true;
 	
 	//Yahoo
 //	private static int firstLabel = 1;
 //	private static int lastLabel = 40616537;
+//	private static final String graphFile = "yahoo-G5-sorted.tsv.gz";
+//	private static final String basename = "yahoo";
+//	private static boolean headers = false;
 	
 //	@Test
 	public void computeFullRetrievalOfNeighborsForRandomNodesTime() throws Exception {
@@ -46,7 +51,7 @@ public class TestTime {
 
 		OfInt it = random.ints(1,lastLabel+1).iterator();
 		
-		long numIter = 100000000;
+		long numIter = 100_000_000;
 		long totalSum = 0;
 		for(int i = 0; i < numIter; i++) {
 			long tic = System.nanoTime();
@@ -80,7 +85,7 @@ public class TestTime {
 		emg.load();
 		
 		long trueCounter = 0;
-		long numIter = 100000000;
+		long numIter = 100_000_000;
 		long totalSum = 0;
 		long trueSum = 0;
 		for(int i = 0; i < numIter; i++) {
@@ -88,7 +93,7 @@ public class TestTime {
 			int n2 = randInRangeInclusive(firstLabel, lastLabel);
 			long tic = System.nanoTime();
 			boolean b = emg.isNeighbor(n1,  n2);
-			long toc = System.nanoTime()-tic;
+			long toc = System.nanoTime();
 			
 			totalSum += toc-tic;
 			if(b) {
@@ -120,7 +125,7 @@ public class TestTime {
 		long maxTimestamp = System.currentTimeMillis()/1000;
 		
 		long trueCounter = 0;
-		long numIter = 100000000;
+		long numIter = 100_000_000;
 		long totalSum = 0;
 		long trueSum = 0;
 		for(int i = 0; i < numIter; i++) {

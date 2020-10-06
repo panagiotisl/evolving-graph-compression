@@ -45,6 +45,7 @@ public class EvolvingMultiGraph {
 		this.headers = headers;
 		this.zetaK = zetaK;
 		this.basename = basename;
+		this.aggregationFactor = aggregationFactor;
 	}
 
 	protected long findMinimumTimestamp() throws IOException {
