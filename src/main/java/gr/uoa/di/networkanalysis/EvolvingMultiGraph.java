@@ -208,6 +208,59 @@ public class EvolvingMultiGraph {
 		minTimestamp = ibs.readLong(64);
 		ibs.close();
 	}
+	
+	public boolean isNeighbor(int node, int neighbor) {
+		LazyIntIterator it = graph.successors(node);
+		int n = -1;
+		while((n = it.nextInt()) != -1) {
+			if(n == neighbor) return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean isNeighbor(int node, int neighbor, long t1, long t2) throws Exception {
+		LazyIntIterator it = graph.successors(node);
+		int n = -1, from = -1, to = -1, pos = 0;
+		long t;
+		// Find  the starting position
+		while((n = it.nextInt()) != -1) {
+			if(n == neighbor) {
+				from = pos++;
+				break;
+			}
+		}
+		// Return false if it was not found at least once
+		if(from == -1) {
+			return false;
+		}
+		// Find the ending position
+		while((n = it.nextInt()) == neighbor) {
+			pos++;
+		}
+		to = pos-1;
+		
+		InputBitStream ibs = new InputBitStream(timestamps);
+		ibs.position(efindex.getLong(node-1));
+		// Skip everything up to from
+		long previous = minTimestamp;
+		for(int i =0; i < from; i++) {
+			t = Fast.nat2int(ibs.readLongZeta(zetaK));
+			t = timestampComparer.reverse(previous, t);
+			previous = t;
+		}
+		// Scan all the timestamps in the range from->to
+		for(int i = from; i <= to; i++) {
+			t = Fast.nat2int(ibs.readLongZeta(zetaK));
+			t = timestampComparer.reverse(previous, t);
+			if(t1 <= t && t <= t2) return true;
+			previous = t;
+		}
+		
+		ibs.close();
+		
+		return false;
+	}
 
 	public SuccessorIterator successors(int node) throws Exception {
 		return new SuccessorIterator(node);

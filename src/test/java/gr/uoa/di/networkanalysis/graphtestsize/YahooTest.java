@@ -1,4 +1,4 @@
-package gr.uoa.di.networkanalysis.graphtests;
+package gr.uoa.di.networkanalysis.graphtestsize;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,8 +29,8 @@ public class YahooTest {
 	@Test
 	public void testLoadAndSuccesors() throws Exception {
 
-		int[] aggregations = new int[]{1, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
-		String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
+		int[] aggregations = new int[]{1, 15*60, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
+		String[] aggregationsStr = new String[]{"1", "15*60", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter("yahoo-results.txt"));
 		
@@ -47,7 +47,10 @@ public class YahooTest {
 				
 				emg.storeTimestampsAndIndex();
 				
-				writer.append(String.format("aggregation: %s, k: %d, timestamps: %d, index: %d\n", aggregationsStr[j], k, new File("yahoo.timestamps").length(), new File("yahoo.efindex").length()));
+				String out = String.format("k: %d, aggregation: %s, timestamps: %d, index: %d", k, aggregationsStr[j], new File("yahoo.timestamps").length(), new File("yahoo.efindex").length());
+				System.out.println(out);
+				writer.append(out);
+				writer.newLine();
 				writer.flush();
 			}
 		}

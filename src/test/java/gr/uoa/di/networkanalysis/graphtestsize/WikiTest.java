@@ -1,4 +1,4 @@
-package gr.uoa.di.networkanalysis.graphtests;
+package gr.uoa.di.networkanalysis.graphtestsize;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
