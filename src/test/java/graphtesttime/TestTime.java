@@ -6,8 +6,6 @@ import java.util.Random;
 import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
-import gr.uoa.di.networkanalysis.TimestampComparer;
-import gr.uoa.di.networkanalysis.TimestampComparerAggregator;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 
 public class TestTime {
@@ -15,7 +13,6 @@ public class TestTime {
 	private static final Random random = new Random();
 	
 	private static final int factor = 1;
-	private static TimestampComparer ic = new TimestampComparerAggregator(factor);
 	
 	private static final String graphFile = "out.flickr-growth-sorted.gz";
 	private static final String basename = "flickr";
@@ -42,7 +39,7 @@ public class TestTime {
 				headers,
 				k,
 				basename,
-				ic
+				factor
 		);
 		
 		emg.load();
@@ -50,8 +47,7 @@ public class TestTime {
 		OfInt it = random.ints(1,lastLabel+1).iterator();
 		
 		long numIter = 100000000;
-		long startTotal = System.nanoTime();
-		long perNodeTotal = 0;
+		long totalSum = 0;
 		for(int i = 0; i < numIter; i++) {
 			long tic = System.nanoTime();
 			SuccessorIterator si = emg.successors(it.nextInt());
@@ -64,12 +60,11 @@ public class TestTime {
 				}
 			}
 			long toc = System.nanoTime();
-			perNodeTotal += toc-tic;
+			totalSum += toc-tic;
 		}
 		long endTotal = System.nanoTime();
 		
-		System.out.println("Total time: "+(endTotal-startTotal));
-		System.out.println("Average per node: "+perNodeTotal/numIter);
+		System.out.println("Total time: "+totalSum);
 	}
 	
 //	@Test
@@ -79,7 +74,7 @@ public class TestTime {
 				headers,
 				k,
 				basename,
-				ic
+				factor
 		);
 		
 		emg.load();
@@ -116,7 +111,7 @@ public class TestTime {
 				headers,
 				k,
 				basename,
-				ic
+				factor
 		);
 		
 		emg.load();

@@ -7,12 +7,11 @@ import java.io.FileWriter;
 import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
-import gr.uoa.di.networkanalysis.TimestampComparer;
 import gr.uoa.di.networkanalysis.TimestampComparerAggregator;
 
 public class YahooTest {
 
-	private static TimestampComparer ic = new TimestampComparerAggregator(1);
+	private static final int factor = 1;
 
 	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
@@ -20,7 +19,7 @@ public class YahooTest {
 				false,
 				2,
 				"yahoo",
-				ic
+				factor
 		);
 
 		emg.storeBVMultiGraph();
@@ -42,7 +41,7 @@ public class YahooTest {
 						false,
 						k,
 						"yahoo",
-						new TimestampComparerAggregator(aggregations[j])
+						aggregations[j]
 				);
 				
 				emg.storeTimestampsAndIndex();

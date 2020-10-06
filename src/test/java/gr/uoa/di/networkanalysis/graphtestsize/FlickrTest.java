@@ -16,15 +16,12 @@ import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
-import gr.uoa.di.networkanalysis.TimestampComparer;
 import gr.uoa.di.networkanalysis.TimestampComparerAggregator;
 import gr.uoa.di.networkanalysis.Successor;
 
 public class FlickrTest {
 
 	private static final int factor = 1;
-	
-	private static TimestampComparer ic = new TimestampComparerAggregator(factor);
 	
 //	@Test
 	public void testAll() throws Exception {
@@ -39,7 +36,7 @@ public class FlickrTest {
 				true,
 				2,
 				"flickr",
-				ic
+				factor
 		);
 
 		emg.store();
@@ -61,7 +58,7 @@ public class FlickrTest {
 						true,
 						k,
 						"flickr",
-						new TimestampComparerAggregator(aggregations[j])
+						aggregations[j]
 				);
 				
 				emg.storeTimestampsAndIndex();

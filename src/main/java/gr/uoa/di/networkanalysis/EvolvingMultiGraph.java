@@ -32,20 +32,19 @@ public class EvolvingMultiGraph {
 	protected boolean headers;
 	protected int zetaK;
 	protected String basename;
-	protected TimestampComparer timestampComparer;
+	protected long aggregationFactor;
 	
 	protected BVMultiGraph graph;
 	protected EliasFanoMonotoneLongBigList efindex;
 	protected byte[] timestamps;
 	protected long minTimestamp;
 	
-	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, TimestampComparer timestampComparer) {
+	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, long aggregationFactor) {
 		super();
 		this.graphFile = graphFile;
 		this.headers = headers;
 		this.zetaK = zetaK;
 		this.basename = basename;
-		this.timestampComparer = timestampComparer;
 	}
 
 	protected long findMinimumTimestamp() throws IOException {
@@ -81,7 +80,7 @@ public class EvolvingMultiGraph {
 		long previousNeighborTimestamp = minTimestamp;
 		
 		for(Long seconds: currentNeighborsTimestamps) {
-			long periodsBetween = timestampComparer.timestampsDifference(previousNeighborTimestamp, seconds);
+			long periodsBetween = TimestampComparerAggregator.timestampsDifference(previousNeighborTimestamp, seconds, aggregationFactor);
 			periodsBetween = Fast.int2nat(periodsBetween);
 			previousNeighborTimestamp = seconds;
 			ret += obs.writeLongZeta(periodsBetween, zetaK);
@@ -124,7 +123,7 @@ public class EvolvingMultiGraph {
 	public void storeTimestampsAndIndex() throws IOException {
 		
 		// Find the minimum timestamp in the file
-        long minTimestamp = timestampComparer.aggregateMinTimestamp(findMinimumTimestamp());
+        long minTimestamp = TimestampComparerAggregator.aggregateMinTimestamp(findMinimumTimestamp(), aggregationFactor);
         
         InputStream fileStream = new FileInputStream(graphFile);
         GZIPInputStream gzipStream = new GZIPInputStream(fileStream);
@@ -246,13 +245,13 @@ public class EvolvingMultiGraph {
 		long previous = minTimestamp;
 		for(int i =0; i < from; i++) {
 			t = Fast.nat2int(ibs.readLongZeta(zetaK));
-			t = timestampComparer.reverse(previous, t);
+			t = TimestampComparerAggregator.reverse(previous, t, aggregationFactor);
 			previous = t;
 		}
 		// Scan all the timestamps in the range from->to
 		for(int i = from; i <= to; i++) {
 			t = Fast.nat2int(ibs.readLongZeta(zetaK));
-			t = timestampComparer.reverse(previous, t);
+			t = TimestampComparerAggregator.reverse(previous, t, aggregationFactor);
 			if(t1 <= t && t <= t2) return true;
 			previous = t;
 		}
@@ -293,7 +292,7 @@ public class EvolvingMultiGraph {
 			long t;
 			try {
 				t = Fast.nat2int(ibs.readLongZeta(zetaK));
-				t = timestampComparer.reverse(previous, t);
+				t = TimestampComparerAggregator.reverse(previous, t, aggregationFactor);
 				previous = t;
 			}
 			catch(IOException e) {
@@ -317,10 +316,6 @@ public class EvolvingMultiGraph {
 
 	public String getBasename() {
 		return basename;
-	}
-
-	public TimestampComparer getTimestampComparer() {
-		return timestampComparer;
 	}
 
 	public BVMultiGraph getGraph() {

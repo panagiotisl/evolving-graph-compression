@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.Successor;
-import gr.uoa.di.networkanalysis.TimestampComparer;
 import gr.uoa.di.networkanalysis.TimestampComparerAggregator;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 
@@ -20,21 +19,13 @@ public class WikiTest {
 
 	private static final int factor = 2*24*60*60;
 	
-	private static TimestampComparer ic = new TimestampComparerAggregator(factor);
-	
-//	@Test
-//	public void testAll() throws Exception {
-//		testStore();
-//		testLoadAndSuccesors();
-//	}
-	
 	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				"out.edit-enwiki.sorted.gz",
 				true,
 				2,
 				"wiki",
-				ic
+				factor
 		);
 
 		emg.store();
@@ -48,7 +39,7 @@ public class WikiTest {
 				true,
 				4,
 				"wiki",
-				ic
+				factor
 		);
 		
 		emg.storeTimestampsAndIndex();
