@@ -213,7 +213,9 @@ public class EvolvingMultiGraph {
 		LazyIntIterator it = graph.successors(node);
 		int n = -1;
 		while((n = it.nextInt()) != -1) {
-			if(n == neighbor) return true;
+			return true;
+			//			if(n == neighbor) return true;
+//			else if(n > neighbor) return false;
 		}
 		
 		return false;

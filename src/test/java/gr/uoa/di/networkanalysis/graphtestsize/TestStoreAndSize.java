@@ -22,13 +22,13 @@ public class TestStoreAndSize {
 //	private static String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
 
 	// Wiki
-//	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
-//	private static final String basename =  "wiki";
-//	private static final boolean headers = true;
-//	private static final long factor = 1;
-//	private static final int k = 2;
-//	private static int[] aggregations = new int[]{1, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
-//	private static String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
+	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
+	private static final String basename =  "wiki";
+	private static final boolean headers = true;
+	private static final long factor = 1;
+	private static final int k = 2;
+	private static int[] aggregations = new int[]{1, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
+	private static String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
 
 	// Yahoo
 //	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
@@ -49,15 +49,15 @@ public class TestStoreAndSize {
 //	private static String[] aggregationsStr = new String[]{"1"};
 
 	// cbtPow
-	private static final String graphFile =  "cbtPow-sorted.txt.gz";
-	private static final String basename =  "cbtPow";
-	private static final boolean headers = false;
-	private static final long factor = 1;
-	private static final int k = 2;
-	private static int[] aggregations = new int[]{1};
-	private static String[] aggregationsStr = new String[]{"1"};
+//	private static final String graphFile =  "cbtPow-sorted.txt.gz";
+//	private static final String basename =  "cbtPow";
+//	private static final boolean headers = false;
+//	private static final long factor = 1;
+//	private static final int k = 2;
+//	private static int[] aggregations = new int[]{1};
+//	private static String[] aggregationsStr = new String[]{"1"};
 
-//	@Test
+	@Test
 	public void testStore() throws Exception {
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				graphFile,
@@ -70,7 +70,7 @@ public class TestStoreAndSize {
 		emg.store();
 	}
 	
-	@Test
+//	@Test
 	public void sizesForKAndAggregations() throws Exception {
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(basename+"-results.txt"));
