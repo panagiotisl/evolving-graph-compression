@@ -32,7 +32,7 @@ public class TestStoreAndSize {
 
 	// Yahoo
 	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
-	private static final String basename =  "flickr";
+	private static final String basename =  "yahoo";
 	private static final boolean headers = false;
 	private static final long factor = 1;
 	private static final int k = 2;
