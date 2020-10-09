@@ -16,28 +16,28 @@ public class TestStoreAndSize {
 //	private static final String graphFile =  "out.flickr-growth-sorted.gz";
 //	private static final String basename =  "flickr";
 //	private static final boolean headers = true;
-//	private static final long factor = 1;
+//	private static final long factor = 24*60*60;
 //	private static final int k = 2;
 //	private static int[] aggregations = new int[]{1, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
 //	private static String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
 
 	// Wiki
-	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
-	private static final String basename =  "wiki";
-	private static final boolean headers = true;
-	private static final long factor = 1;
-	private static final int k = 2;
-	private static int[] aggregations = new int[]{1, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
-	private static String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
-
-	// Yahoo
-//	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
-//	private static final String basename =  "flickr";
-//	private static final boolean headers = false;
+//	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
+//	private static final String basename =  "wiki";
+//	private static final boolean headers = true;
 //	private static final long factor = 1;
 //	private static final int k = 2;
-//	private static int[] aggregations = new int[]{1, 15*60, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
-//	private static String[] aggregationsStr = new String[]{"1", "15*60", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
+//	private static int[] aggregations = new int[]{1, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
+//	private static String[] aggregationsStr = new String[]{"1", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
+
+	// Yahoo
+	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
+	private static final String basename =  "flickr";
+	private static final boolean headers = false;
+	private static final long factor = 1;
+	private static final int k = 2;
+	private static int[] aggregations = new int[]{1, 15*60, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
+	private static String[] aggregationsStr = new String[]{"1", "15*60", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
 
 	// cbtComm
 //	private static final String graphFile =  "cbtComm-sorted.txt.gz";
@@ -59,6 +59,8 @@ public class TestStoreAndSize {
 
 	@Test
 	public void testStore() throws Exception {
+		
+		long tic = System.nanoTime();
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				graphFile,
 				headers,
@@ -68,6 +70,7 @@ public class TestStoreAndSize {
 		);
 
 		emg.store();
+		System.out.println("Test store: "+(System.nanoTime()-tic));
 	}
 	
 //	@Test

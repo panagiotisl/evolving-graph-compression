@@ -109,10 +109,19 @@ public class EvolvingMultiGraph {
         if(headers) {
         	buffered.readLine();
         }
+        
+        // While generating the tmp file for the arc list, find the minimum timestamp of the file
+        Long tmpMinTimestamp = null;
         while ((line = buffered.readLine()) != null) {
-            String[] splits = line.split("\\s");
-           	writer.write(String.format("%s\t%s\n", splits[0], splits[1]));
+            String[] tokens = line.split("\\s");
+           	writer.write(String.format("%s\t%s\n", tokens[0], tokens[1]));
+           	long timestamp = Long.parseLong(tokens[3]);
+            if(tmpMinTimestamp == null || timestamp < tmpMinTimestamp) {
+            	tmpMinTimestamp = timestamp;
+            }
         }
+        
+        minTimestamp = tmpMinTimestamp;
            
         writer.close();
         buffered.close();
@@ -123,8 +132,8 @@ public class EvolvingMultiGraph {
 	
 	public void storeTimestampsAndIndex() throws IOException {
 		
-		// Find the minimum timestamp in the file
-        long minTimestamp = TimestampComparerAggregator.aggregateMinTimestamp(findMinimumTimestamp(), aggregationFactor);
+		// Aggregate the minimum timestamp of the ile
+        minTimestamp = TimestampComparerAggregator.aggregateMinTimestamp(minTimestamp, aggregationFactor);
         
         InputStream fileStream = new FileInputStream(graphFile);
         GZIPInputStream gzipStream = new GZIPInputStream(fileStream);
