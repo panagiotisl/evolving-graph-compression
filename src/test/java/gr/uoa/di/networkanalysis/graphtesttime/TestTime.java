@@ -1,4 +1,4 @@
-package graphtesttime;
+package gr.uoa.di.networkanalysis.graphtesttime;
 
 import java.util.PrimitiveIterator.OfInt;
 import java.io.BufferedReader;
@@ -18,24 +18,24 @@ public class TestTime {
 
 	private static final Random random = new Random();
 	
-	private static final int factor = 1;
+	private static final int aggregation = 1;
 	private static int k = 2;
 
 	//Flickr
-//	private static int firstLabel = 1;
-//	private static int lastLabel = 2_302_925;
-//	private static final String graphFile = "out.flickr-growth-sorted.gz";
-//	private static final String basename = "flickr";
-//	private static boolean headers = true;
-//	private static String sampleFile = "flickr-sample.txt";
+	private static int firstLabel = 1;
+	private static int lastLabel = 2_302_925;
+	private static final String graphFile = "out.flickr-growth-sorted.gz";
+	private static final String basename = "flickr";
+	private static boolean headers = true;
+	private static String sampleFile = "flickr-sample.txt";
 	
 	//Wiki
-	private static int firstLabel = 1;
-	private static int lastLabel = 3819691;
-	private static final String graphFile = "out.edit-enwiki.sorted.gz";
-	private static final String basename = "wiki";
-	private static boolean headers = true;
-	private static String sampleFile = "wiki-sample.txt";
+//	private static int firstLabel = 1;
+//	private static int lastLabel = 3819691;
+//	private static final String graphFile = "out.edit-enwiki.sorted.gz";
+//	private static final String basename = "wiki";
+//	private static boolean headers = true;
+//	private static String sampleFile = "wiki-sample.txt";
 	
 	//Yahoo
 //	private static int firstLabel = 1;
@@ -71,7 +71,7 @@ public class TestTime {
 				headers,
 				k,
 				basename,
-				factor
+				aggregation
 		);
 		
 		emg.load();
@@ -109,7 +109,7 @@ public class TestTime {
 				headers,
 				k,
 				basename,
-				factor
+				aggregation
 		);
 		
 		emg.load();
@@ -131,7 +131,7 @@ public class TestTime {
 		long totalSum = 0;
 		long trueSum = 0;
 
-		for(int i = 0; i < 1; i++) {
+		for(int i = 0; i < 100; i++) {
 			System.out.println(i);
 			for(int j = 0; j < from.length; j++) {
 				int n1 = from[j];
@@ -165,7 +165,7 @@ public class TestTime {
 				headers,
 				k,
 				basename,
-				factor
+				aggregation
 		);
 		
 		emg.load();
@@ -203,7 +203,7 @@ public class TestTime {
 				headers,
 				k,
 				basename,
-				factor
+				aggregation
 		);
 		
 		emg.load();
