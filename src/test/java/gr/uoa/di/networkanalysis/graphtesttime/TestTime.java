@@ -3,12 +3,9 @@ package gr.uoa.di.networkanalysis.graphtesttime;
 import java.util.PrimitiveIterator.OfInt;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.lucene.search.FieldCache.IntParser;
 import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
@@ -62,7 +59,7 @@ public class TestTime {
 //	private static boolean headers = false;
 //	private static String sampleFile = "cbtPow-sample.txt";
 
-//	@Test
+	@Test
 	public void computeFullRetrievalOfNeighborsForRandomNodesTime() throws Exception {
 		
 		System.out.println("computeFullRetrievalOfNeighborsForRandomNodesTime");
@@ -155,7 +152,7 @@ public class TestTime {
 		System.out.println("True counter: "+trueCounter);
 	}
 	
-//	@Test
+	@Test
 	public void testIsNeighborNoRange() throws Exception {
 		
 		System.out.println("testIsNeighborNoRange");
@@ -193,7 +190,7 @@ public class TestTime {
 		System.out.println("True counter: "+trueCounter);
 	}
 	
-//	@Test
+	@Test
 	public void testIsNeighborWithRange() throws Exception {
 		
 		System.out.println("testIsNeighborWithRange");

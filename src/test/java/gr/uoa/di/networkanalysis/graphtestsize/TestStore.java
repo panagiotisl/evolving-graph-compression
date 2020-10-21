@@ -10,8 +10,6 @@ import java.util.zip.GZIPInputStream;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.luaj.vm2.lib.PackageLib.loadlib;
-
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph.SuccessorIterator;
 import gr.uoa.di.networkanalysis.Successor;
