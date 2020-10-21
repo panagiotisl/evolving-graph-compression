@@ -19,12 +19,12 @@ public class TestTime {
 	private static int k = 2;
 
 	//Flickr
-	private static int firstLabel = 1;
-	private static int lastLabel = 2_302_925;
-	private static final String graphFile = "out.flickr-growth-sorted.gz";
-	private static final String basename = "flickr";
-	private static boolean headers = true;
-	private static String sampleFile = "flickr-sample.txt";
+//	private static int firstLabel = 1;
+//	private static int lastLabel = 2_302_925;
+//	private static final String graphFile = "out.flickr-growth-sorted.gz";
+//	private static final String basename = "flickr";
+//	private static boolean headers = true;
+//	private static String sampleFile = "flickr-sample.txt";
 	
 	//Wiki
 //	private static int firstLabel = 1;
@@ -44,12 +44,12 @@ public class TestTime {
 //	private static String sampleFile = "flickr-sample-tail.txt";
 	
 	//cbtComm
-//	private static int firstLabel = 0;
-//	private static int lastLabel = 9999;
-//	private static final String graphFile = "cbtComm-sorted.txt.gz";
-//	private static final String basename = "cbtComm";
-//	private static boolean headers = false;
-//	private static String sampleFile = "cbtComm-sample.txt";
+	private static int firstLabel = 0;
+	private static int lastLabel = 9999;
+	private static final String graphFile = "cbtComm-sorted.txt.gz";
+	private static final String basename = "cbtComm";
+	private static boolean headers = false;
+	private static String sampleFile = "cbtComm-sample.txt";
 	
 	//cbtPow
 //	private static int firstLabel = 0;
@@ -61,10 +61,12 @@ public class TestTime {
 
 	@Test
 	public void computeFullRetrievalOfNeighborsForRandomNodesTime() throws Exception {
+
+		ClassLoader classLoader = getClass().getClassLoader();
+		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
 		
-		System.out.println("computeFullRetrievalOfNeighborsForRandomNodesTime");
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				graphFile,
+				graphFileResourcePath,
 				headers,
 				k,
 				basename,
@@ -99,10 +101,11 @@ public class TestTime {
 	@Test
 	public void testIsNeighborFromSample() throws Exception {
 		
-		System.out.println("testIsNeighborFromSample");
+		ClassLoader classLoader = getClass().getClassLoader();
+		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
 		
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				graphFile,
+				graphFileResourcePath,
 				headers,
 				k,
 				basename,
@@ -155,10 +158,11 @@ public class TestTime {
 	@Test
 	public void testIsNeighborNoRange() throws Exception {
 		
-		System.out.println("testIsNeighborNoRange");
+		ClassLoader classLoader = getClass().getClassLoader();
+		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
 		
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				graphFile,
+				graphFileResourcePath,
 				headers,
 				k,
 				basename,
@@ -192,11 +196,12 @@ public class TestTime {
 	
 	@Test
 	public void testIsNeighborWithRange() throws Exception {
-		
-		System.out.println("testIsNeighborWithRange");
+
+		ClassLoader classLoader = getClass().getClassLoader();
+		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();		
 		
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				graphFile,
+				graphFileResourcePath,
 				headers,
 				k,
 				basename,

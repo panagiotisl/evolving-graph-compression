@@ -4,8 +4,10 @@ package gr.uoa.di.networkanalysis.graphtestsize;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
 import org.junit.Assert;
@@ -17,11 +19,11 @@ import gr.uoa.di.networkanalysis.Successor;
 public class TestStore {
 
 	// Flickr
-	private static final String graphFile =  "out.flickr-growth-sorted.gz";
-	private static final String basename =  "flickr";
-	private static final boolean headers = true;
-	private static final int k = 2;
-	private static int aggregation = 24*60*60;
+//	private static final String graphFile =  "out.flickr-growth-sorted.gz";
+//	private static final String basename =  "flickr";
+//	private static final boolean headers = true;
+//	private static final int k = 2;
+//	private static int aggregation = 24*60*60;
 
 	// Wiki
 //	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
@@ -38,11 +40,11 @@ public class TestStore {
 //	private static int aggregation = 15*60;
 
 	// cbtComm
-//	private static final String graphFile =  "cbtComm-sorted.txt.gz";
-//	private static final String basename =  "cbtComm";
-//	private static final boolean headers = false;
-//	private static final int k = 2;
-//	private static int aggregation = 1;
+	private static final String graphFile =  "cbtComm-sorted.txt.gz";
+	private static final String basename =  "cbtComm";
+	private static final boolean headers = false;
+	private static final int k = 2;
+	private static int aggregation = 1;
 
 	// cbtPow
 //	private static final String graphFile =  "cbtPow-sorted.txt.gz";
@@ -52,11 +54,14 @@ public class TestStore {
 //	private static int aggregation = 1;
 
 	
-//	@Test
+	@Test
 	public void testStore() throws Exception {
 		
+		ClassLoader classLoader = getClass().getClassLoader();
+		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
+
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				graphFile,
+				graphFileResourcePath,
 				headers,
 				k,
 				basename,
@@ -69,11 +74,14 @@ public class TestStore {
 		System.out.println("Compression took: " + (t2-t1) + " nanoseconds");
 	}
 	
-	@Test
+//	@Test
 	public void assertEqualsFromOriginalFile() throws Exception {
 		
+		ClassLoader classLoader = getClass().getClassLoader();
+		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
+		
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
-				graphFile,
+				graphFileResourcePath,
 				headers,
 				k,
 				basename,
