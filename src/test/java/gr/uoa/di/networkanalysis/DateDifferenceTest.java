@@ -45,6 +45,6 @@ public class DateDifferenceTest {
 		Instant one = Instant.ofEpochSecond(1178748000);
 		Instant two = Instant.ofEpochSecond(1178665200);
 		Duration res = Duration.between(one, two);
-	    System.out.println(res.toSeconds());
+	    //System.out.println(res.toSeconds());
 	}
 }

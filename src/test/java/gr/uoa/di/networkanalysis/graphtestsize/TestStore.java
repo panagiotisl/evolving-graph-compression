@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
+import com.google.common.io.Resources;
 import org.junit.Assert;
 import org.junit.Test;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
@@ -19,7 +20,7 @@ import gr.uoa.di.networkanalysis.Successor;
 public class TestStore {
 
 	// Flickr
-//	private static final String graphFile =  "out.flickr-growth-sorted.gz";
+//	private static final String graphFile =  "out.flickr-growth.sorted.gz";
 //	private static final String basename =  "flickr";
 //	private static final boolean headers = true;
 //	private static final int k = 2;
@@ -56,7 +57,7 @@ public class TestStore {
 	
 	@Test
 	public void testStore() throws Exception {
-		
+
 		ClassLoader classLoader = getClass().getClassLoader();
 		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
 
@@ -74,9 +75,9 @@ public class TestStore {
 		System.out.println("Compression took: " + (t2-t1) + " nanoseconds");
 	}
 	
-//	@Test
+	@Test
 	public void assertEqualsFromOriginalFile() throws Exception {
-		
+
 		ClassLoader classLoader = getClass().getClassLoader();
 		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
 		
@@ -96,8 +97,11 @@ public class TestStore {
         BufferedReader buffered = new BufferedReader(decoder);
 
         int current = 1;
-        String line = buffered.readLine(); // Get rid of headers
-        ArrayList<Successor> list = new ArrayList<Successor>();
+        String line = null;
+        if(headers) {
+        	buffered.readLine(); // Get rid of headers
+		}
+        ArrayList<Successor> list = new ArrayList<>();
 
         while ((line = buffered.readLine()) != null) {
         	String[] tokens = line.split("\\s+");
