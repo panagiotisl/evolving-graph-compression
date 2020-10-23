@@ -59,7 +59,7 @@ public class TestTime {
 //	private static boolean headers = false;
 //	private static String sampleFile = "cbtPow-sample.txt";
 
-	@Test
+//	@Test
 	public void computeFullRetrievalOfNeighborsForRandomNodesTime() throws Exception {
 
 		ClassLoader classLoader = getClass().getClassLoader();
@@ -114,7 +114,9 @@ public class TestTime {
 		
 		emg.load();
 
-		BufferedReader reader = new BufferedReader(new FileReader(sampleFile));
+		String sampleFileResourcePath = classLoader.getResource(sampleFile).getPath();
+
+		BufferedReader reader = new BufferedReader(new FileReader(sampleFileResourcePath));
 		String line = null;
 		int[] from = new int[1000];
 		int[] to = new int[1000];
@@ -132,7 +134,6 @@ public class TestTime {
 		long trueSum = 0;
 
 		for(int i = 0; i < 100; i++) {
-			System.out.println(i);
 			for(int j = 0; j < from.length; j++) {
 				int n1 = from[j];
 				int n2 = to[j];
@@ -155,7 +156,7 @@ public class TestTime {
 		System.out.println("True counter: "+trueCounter);
 	}
 	
-	@Test
+//	@Test
 	public void testIsNeighborNoRange() throws Exception {
 		
 		ClassLoader classLoader = getClass().getClassLoader();
@@ -194,7 +195,7 @@ public class TestTime {
 		System.out.println("True counter: "+trueCounter);
 	}
 	
-	@Test
+//	@Test
 	public void testIsNeighborWithRange() throws Exception {
 
 		ClassLoader classLoader = getClass().getClassLoader();
