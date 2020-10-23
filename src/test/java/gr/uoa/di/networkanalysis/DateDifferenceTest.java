@@ -11,7 +11,6 @@ import org.junit.Test;
 
 public class DateDifferenceTest {
 
-	@Test
 	public void daysBetweenDates() {
 		LocalDate d1 = LocalDate.of(2003, 10, 5);
 		LocalDate d2 = LocalDate.of(2004, 10, 5);
@@ -39,5 +38,13 @@ public class DateDifferenceTest {
 		LocalDate d2 = LocalDate.of(ldt2.getYear(), ldt2.getMonthValue(), ldt2.getDayOfMonth());
 		long daysBetween = ChronoUnit.DAYS.between(d1, d2);
 		System.out.println(daysBetween);
+	}
+	
+	@Test
+	public void sanityCheck() {
+		Instant one = Instant.ofEpochSecond(1178748000);
+		Instant two = Instant.ofEpochSecond(1178665200);
+		Duration res = Duration.between(one, two);
+	    //System.out.println(res.toSeconds());
 	}
 }
