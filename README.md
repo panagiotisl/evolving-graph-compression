@@ -2,7 +2,7 @@
 
 Code and reproducible tests executing ChronoGraph for a synthetic graph.
 
-Execute:
+Execute (Requires Java 11):
 
 ```
 mvn test
