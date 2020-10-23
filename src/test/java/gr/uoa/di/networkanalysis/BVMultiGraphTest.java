@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +12,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import org.junit.Test;
@@ -21,17 +19,15 @@ import org.junit.Test;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.webgraph.LazyIntIterator;
-import it.unimi.dsi.webgraph.NodeIterator;
 
 import org.junit.Assert;
 
 public class BVMultiGraphTest {
 
-    @SuppressWarnings("deprecation")
     @Test
     public void testWebGraphSize() throws IOException {
 
-        String graph = "out.test4.gz";
+        String graph = "out.edit-enwiki-multi-graph.gz";
 
         InputStream fileStream = new FileInputStream(graph);
         //        InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");
@@ -81,20 +77,17 @@ public class BVMultiGraphTest {
                 int nodeB = Integer.parseInt(splits[1]);
                 if (nodeA != node) {
                     if (node != -1) {
-                        LazyIntIterator it = bvMultiGraph.successors(node);
-                        int neighbor;
-                        List<Integer> neighborsResult = new ArrayList<>();
-                        while ((neighbor = it.nextInt()) != -1) {
-                            neighborsResult.add(neighbor);
+                        if (neighbors.size() < 200) {
+                            System.out.println("Node: " + node);
+                            LazyIntIterator it = bvMultiGraph.successors(node);
+                            int neighbor;
+                            List<Integer> neighborsResult = new ArrayList<>();
+                            while ((neighbor = it.nextInt()) != -1) {
+                                neighborsResult.add(neighbor);
+                            }
+                            Assert.assertTrue(neighbors.containsAll(neighborsResult));
+                            Assert.assertTrue(neighborsResult.containsAll(neighbors));
                         }
-                        System.out.println("Node: " + node);
-                        if (node == 10) {
-                            System.out.println(neighbors.toString());
-                            System.out.println(neighborsResult.toString());
-                            System.out.println(neighborsResult.stream().sorted().collect(Collectors.toList()).toString());
-                        }
-                        Assert.assertTrue(neighbors.containsAll(neighborsResult));
-                        Assert.assertTrue(neighborsResult.containsAll(neighbors));
                     }
                     node = nodeA;
                     neighbors = new ArrayList<>();
