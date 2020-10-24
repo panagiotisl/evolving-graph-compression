@@ -6,11 +6,6 @@
 	<artifactId>evolving-graph-compression</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<properties>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven.compiler.source>1.8</maven.compiler.source>
-	</properties>
-
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/it.unimi.dsi/webgraph -->
 		<dependency>
@@ -62,6 +57,14 @@
 
 	<build>
 		<plugins>
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <release>11</release>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
