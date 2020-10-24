@@ -148,8 +148,8 @@ public class EvolvingMultiGraph {
         LongArrayList offsetsIndex= new LongArrayList();
         long currentOffset = obs.writeLong(minTimestamp, 64);
 
-        int currentNode = 1;
-        ArrayList<Long> currentNeighborsTimestamps = new ArrayList<Long>();
+        int currentNode = 0;
+        ArrayList<Long> currentNeighborsTimestamps = new ArrayList<>();
         String line;
         
         while ((line = buffered.readLine()) != null) {
@@ -252,7 +252,7 @@ public class EvolvingMultiGraph {
 		to = pos-1;
 		
 		InputBitStream ibs = new InputBitStream(timestamps);
-		ibs.position(efindex.getLong(node-1));
+		ibs.position(efindex.getLong(node));
 		// Skip everything up to from
 		long previous = minTimestamp;
 		for(int i =0; i < from; i++) {
@@ -286,7 +286,7 @@ public class EvolvingMultiGraph {
 		public SuccessorIterator(int node) throws Exception {
 			neighborsIterator = graph.successors(node);
 			ibs = new InputBitStream(timestamps);
-			ibs.position(efindex.getLong(node-1));
+			ibs.position(efindex.getLong(node));
 			previous = minTimestamp;
 		}
 	

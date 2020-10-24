@@ -78,9 +78,8 @@ public class TestStore {
 	@Test
 	public void assertEqualsFromOriginalFile() throws Exception {
 
-		ClassLoader classLoader = getClass().getClassLoader();
-		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
-		
+		String graphFileResourcePath = Resources.getResource(graphFile).getPath();
+
 		EvolvingMultiGraph emg = new EvolvingMultiGraph(
 				graphFileResourcePath,
 				headers,
@@ -90,14 +89,14 @@ public class TestStore {
 		);
 		
 		emg.load();
-		
-		FileInputStream fileStream = new FileInputStream(graphFile);
+
+		FileInputStream fileStream = new FileInputStream(graphFileResourcePath);
         GZIPInputStream gzipStream = new GZIPInputStream(fileStream);
         InputStreamReader decoder = new InputStreamReader(gzipStream, "UTF-8");
         BufferedReader buffered = new BufferedReader(decoder);
 
-        int current = 1;
-        String line = null;
+        int current = 0;
+        String line;
         if(headers) {
         	buffered.readLine(); // Get rid of headers
 		}
@@ -125,9 +124,6 @@ public class TestStore {
         			catch(NoSuchElementException e) {
         				break;
         			}
-        			catch(Exception e) {
-        				System.out.println(e);
-        			}
         		}
 
             	list = new ArrayList<Successor>();
@@ -147,10 +143,7 @@ public class TestStore {
 			catch(NoSuchElementException e) {
 				break;
 			}
-			catch(Exception e) {
-				System.out.println(e);
-			}
-			
+
 		}
 	}
 }

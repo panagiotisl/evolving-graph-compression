@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
-import org.junit.Test;
-
 public class DateDifferenceTest {
 
 	public void daysBetweenDates() {
@@ -40,7 +38,6 @@ public class DateDifferenceTest {
 		System.out.println(daysBetween);
 	}
 	
-	@Test
 	public void sanityCheck() {
 		Instant one = Instant.ofEpochSecond(1178748000);
 		Instant two = Instant.ofEpochSecond(1178665200);

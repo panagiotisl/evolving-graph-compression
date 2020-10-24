@@ -77,10 +77,10 @@ public class TestTime {
 
 		OfInt it = random.ints(1,lastLabel+1).iterator();
 		
-		long numIter = 100_000_000;
+		long numIter = 1_000_000;
+
 		long totalSum = 0;
 		for(int i = 0; i < numIter; i++) {
-			System.out.println(i);
 			long tic = System.nanoTime();
 			SuccessorIterator si = emg.successors(it.nextInt());
 			while(true) {
@@ -95,7 +95,7 @@ public class TestTime {
 			totalSum += toc-tic;
 		}
 		
-		System.out.println("Total time: "+totalSum);
+		System.out.println("Average time: "+ ((double)totalSum/numIter));
 	}
 	
 	@Test
@@ -128,12 +128,14 @@ public class TestTime {
 			pos++;
 		}
 		reader.close();
-		
-		long trueCounter = 0;
+
 		long totalSum = 0;
 		long trueSum = 0;
+		long trueCounter = 0;
+		long falseSum = 0;
+		long falseCounter = 0;
 
-		for(int i = 0; i < 100; i++) {
+		for(int i = 0; i < 1000; i++) {
 			for(int j = 0; j < from.length; j++) {
 				int n1 = from[j];
 				int n2 = to[j];
@@ -142,18 +144,20 @@ public class TestTime {
 				long toc = System.nanoTime();
 				
 				totalSum += toc-tic;
-				
 				if(b) {
 					trueSum += toc-tic;
 					trueCounter++;
 				}
+				else {
+					falseSum += toc-tic;
+					falseCounter++;
+				}
 			}
 		}
-		
 
 		System.out.println("Total time: "+totalSum);
-		System.out.println("True time: "+trueSum);
-		System.out.println("True counter: "+trueCounter);
+		System.out.println("True average time: "+ (trueCounter == 0 ? "None" : (double)trueSum/trueCounter));
+		System.out.println("False average time: "+ (falseCounter == 0 ? "None" : (double)falseSum/falseCounter));
 	}
 	
 	@Test
@@ -171,11 +175,15 @@ public class TestTime {
 		);
 		
 		emg.load();
-		
-		long trueCounter = 0;
-		long numIter = 100_000_000;
+
+		long numIter = 1_000_000;
+
 		long totalSum = 0;
 		long trueSum = 0;
+		long trueCounter = 0;
+		long falseSum = 0;
+		long falseCounter = 0;
+
 		for(int i = 0; i < numIter; i++) {
 			int n1 = randInRangeInclusive(firstLabel, lastLabel);
 			int n2 = randInRangeInclusive(firstLabel, lastLabel);
@@ -185,14 +193,18 @@ public class TestTime {
 			
 			totalSum += toc-tic;
 			if(b) {
-				trueCounter++;
 				trueSum += toc-tic;
+				trueCounter++;
+			}
+			else {
+				falseSum += toc-tic;
+				falseCounter++;
 			}
 		}
 
 		System.out.println("Total time: "+totalSum);
-		System.out.println("True time: "+trueSum);
-		System.out.println("True counter: "+trueCounter);
+		System.out.println("True average time: "+ (trueCounter == 0 ? "None" : (double)trueSum/trueCounter));
+		System.out.println("False average time: "+ (falseCounter == 0 ? "None" : (double)falseSum/falseCounter));
 	}
 	
 	@Test
@@ -214,10 +226,14 @@ public class TestTime {
 		long minTimestamp = emg.getMinTimestamp();
 		long maxTimestamp = System.currentTimeMillis()/1000;
 		
-		long trueCounter = 0;
-		long numIter = 100_000_000;
+		long numIter = 1_000_000;
+
 		long totalSum = 0;
 		long trueSum = 0;
+		long trueCounter = 0;
+		long falseSum = 0;
+		long falseCounter = 0;
+
 		for(int i = 0; i < numIter; i++) {
 			int n1 = randInRangeInclusive(firstLabel, lastLabel);
 			int n2 = randInRangeInclusive(firstLabel, lastLabel);
@@ -229,14 +245,18 @@ public class TestTime {
 			
 			totalSum += toc-tic;
 			if(b) {
-				trueCounter++;
 				trueSum += toc-tic;
+				trueCounter++;
+			}
+			else {
+				falseSum += toc-tic;
+				falseCounter++;
 			}
 		}
 
 		System.out.println("Total time: "+totalSum);
-		System.out.println("True time: "+trueSum);
-		System.out.println("True counter: "+trueCounter);
+		System.out.println("True average time: "+ (trueCounter == 0 ? "None" : (double)trueSum/trueCounter));
+		System.out.println("False average time: "+ (falseCounter == 0 ? "None" : (double)falseSum/falseCounter));
 	}
 	
 	public int randInRangeInclusive(int x, int y) {
