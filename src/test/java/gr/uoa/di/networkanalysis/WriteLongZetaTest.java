@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import it.unimi.dsi.io.InputBitStream;
 import it.unimi.dsi.io.OutputBitStream;
@@ -13,7 +12,6 @@ import it.unimi.dsi.webgraph.BVGraph;
 
 public class WriteLongZetaTest {
 
-    @Test
     public void testWriteLongZeta() throws IOException {
 
         long timestamp = 124;
