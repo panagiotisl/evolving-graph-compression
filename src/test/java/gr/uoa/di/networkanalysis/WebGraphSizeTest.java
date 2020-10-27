@@ -12,8 +12,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.zip.GZIPInputStream;
 
-import org.junit.Test;
-
 import it.unimi.dsi.law.graph.LayeredLabelPropagation;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.webgraph.BVGraph;
@@ -61,7 +59,6 @@ public class WebGraphSizeTest {
         System.out.println(bvgraph.numArcs());
     }
 
-    @Test
     public void computeLLPPermutation() throws FileNotFoundException, IOException{
 
         InputStream fileStream = new FileInputStream("out.flickr-growth.sorted.gz");

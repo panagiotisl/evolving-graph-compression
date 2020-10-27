@@ -24,7 +24,6 @@ import java.util.zip.GZIPInputStream;
 import java.time.temporal.ChronoUnit;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import it.unimi.dsi.bits.Fast;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -104,7 +103,6 @@ public class EvolvingGraphTest {
 		return ret;
 	}
 	
-	@Test
 	public void store() throws IOException {
 
 		String graphFile = "out.edit-enwiki.sorted.gz";

@@ -14,8 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import org.junit.Test;
-
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.webgraph.LazyIntIterator;
@@ -24,7 +22,6 @@ import org.junit.Assert;
 
 public class BVMultiGraphTest {
 
-    @Test
     public void testWebGraphSize() throws IOException {
 
         String graph = "out.edit-enwiki-multi-graph.gz";
@@ -98,7 +95,6 @@ public class BVMultiGraphTest {
 
     }
 
-    @Test
     public void testIntervalizeMultiples() {
 
         int[] extras = {4, 4, 4, 6, 7, 8, 8};

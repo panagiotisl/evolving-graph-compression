@@ -6,14 +6,12 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 
 public class EliasFanoDsiTest {
 
-    @Test
     public void test() throws Exception {
         Random random = new Random(23);
         int number = 0;
