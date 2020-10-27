@@ -5,8 +5,9 @@ import it.unimi.dsi.webgraph.ArcListASCIIGraph;
 import it.unimi.dsi.webgraph.BVGraph;
 import org.junit.Test;
 
+import com.sun.mail.iap.BadCommandException;
+
 import java.io.*;
-import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
 public class TestLLP {
@@ -69,8 +70,6 @@ public class TestLLP {
         writer.close();
         buffered.close();
 
-        String basename = "flickr-growth";
-
         ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
         BVGraph.store(inputGraph, basename);
 
@@ -86,8 +85,6 @@ public class TestLLP {
 
         System.out.println(map[100]);
         System.out.println(reverse_map[map[100]]);
-
-        if(true) return;
 
         File file = new File(basename + ".llp.txt");
         // if file doesnt exists, then create it
@@ -115,6 +112,67 @@ public class TestLLP {
 
         bw.close();
         buffered.close();
+        String sortedLLPFile = basename+".llp.sorted.txt";
+        ProcessBuilder processBuilder = new ProcessBuilder("sort", "-k1,1n", "-k2,2n", file.getAbsolutePath());
+        try {
+        	Process process = processBuilder.start();
+        	
+        	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        	BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(sortedLLPFile));
+        	
+        	while((line = bufferedReader.readLine()) != null) {
+        		bufferedWriter.append(line);
+        		bufferedWriter.newLine();
+        	}
+        	bufferedReader.close();
+        	bufferedWriter.close();
+        	int exitCode = process.waitFor();
+        	if(exitCode != 0) {
+        		throw new RuntimeException("Could not execute sorting...");
+        	}
+        }
+        catch (IOException e) {
+        	throw new RuntimeException("Could not start process");
+		}
+        catch (InterruptedException e) {
+        	throw new RuntimeException("Could not wait for process");
+		}
+        
+        processBuilder = new ProcessBuilder("gzip", sortedLLPFile);
+        try {
+        	Process process = processBuilder.start();
+        	
+        	int exitCode = process.waitFor();
+        	if(exitCode != 0) {
+        		throw new RuntimeException("Could not execute sorting...");
+        	}
+        }
+        catch (IOException e) {
+        	throw new RuntimeException("Could not start process");
+		}
+        catch (InterruptedException e) {
+        	throw new RuntimeException("Could not wait for process");
+		}
+        
+        fileStream = new FileInputStream(sortedLLPFile+".gz");
+        gzipStream = new GZIPInputStream(fileStream);
+        decoder = new InputStreamReader(gzipStream, "UTF-8");
+        buffered = new BufferedReader(decoder);
+
+        tempFile = File.createTempFile("temp", ".txt");
+        tempFile.deleteOnExit();
+
+        writer = new BufferedWriter(new FileWriter(tempFile));
+        line = buffered.readLine();
+        while ((line = buffered.readLine()) != null) {
+            String[] splits = line.split("\\s");
+            writer.write(String.format("%s\t%s\n", splits[0], splits[1]));
+        }
+        writer.close();
+        buffered.close();
+        
+        inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
+        BVGraph.store(inputGraph, basename+"-llp");
 
     }
 }
