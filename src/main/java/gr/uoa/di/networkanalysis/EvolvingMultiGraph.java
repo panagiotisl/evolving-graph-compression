@@ -17,13 +17,17 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 
+import javax.management.RuntimeErrorException;
+
 import it.unimi.dsi.bits.Fast;
 import it.unimi.dsi.fastutil.io.BinIO;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.io.InputBitStream;
 import it.unimi.dsi.io.OutputBitStream;
+import it.unimi.dsi.law.graph.LayeredLabelPropagation;
 import it.unimi.dsi.sux4j.util.EliasFanoMonotoneLongBigList;
 import it.unimi.dsi.webgraph.ArcListASCIIGraph;
+import it.unimi.dsi.webgraph.BVGraph;
 import it.unimi.dsi.webgraph.LazyIntIterator;
 
 public class EvolvingMultiGraph {
@@ -312,6 +316,102 @@ public class EvolvingMultiGraph {
 			}
 			return new Successor(neighbor, t);
 		}
+	}
+	
+	public static String applyLLP(String graphFile, String basename, boolean headers, BVMultiGraph bvgraph, double[] gammas) throws IOException {
+
+		InputStream fileStream;
+		InputStream gzipStream;
+		Reader decoder;
+		BufferedReader buffered;
+		String line;
+		
+        LayeredLabelPropagation llp = new LayeredLabelPropagation(bvgraph, 23);
+
+        int[] map = llp.computePermutation(gammas, null);
+
+        File file = new File(basename + ".llp.txt");
+
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        BufferedWriter bw = new BufferedWriter(fw);
+
+        fileStream = new FileInputStream(graphFile);
+        gzipStream = new GZIPInputStream(fileStream);
+        decoder = new InputStreamReader(gzipStream, "UTF-8");
+        buffered = new BufferedReader(decoder);
+
+        if(headers)
+        	line = buffered.readLine();
+        while ((line = buffered.readLine()) != null) {
+            String[] splits = line.split("\\s+");
+            bw.write(
+                    map[Integer.parseInt(splits[0])] + "\t" +
+                            map[Integer.parseInt(splits[1])] + "\t" +
+                            splits[2] + "\t"
+                            + splits[3] + "\n");
+        }
+
+        bw.close();
+        buffered.close();
+        
+        String sortedLLPFile = basename+".llp.sorted.txt";
+        ProcessBuilder processBuilder = new ProcessBuilder("sort", "-k1,1n", "-k2,2n", file.getAbsolutePath());
+        File sortedFile = new File(sortedLLPFile);
+        if (!sortedFile.exists()) {
+            sortedFile.createNewFile();
+        }
+        processBuilder.redirectOutput(sortedFile);
+        try {
+        	
+        	Process process = processBuilder.start();
+        	
+        	int exitCode = process.waitFor();
+        	if(exitCode != 0) {
+        		throw new RuntimeException("Could not execute sorting...");
+        	}
+        }
+        catch (IOException e) {
+        	throw new RuntimeException("Could not start process");
+		}
+        catch (InterruptedException e) {
+        	throw new RuntimeException("Could not wait for process");
+		}
+        
+        processBuilder = new ProcessBuilder("rm", file.getAbsolutePath());
+        try {
+        	
+        	Process process = processBuilder.start();
+        	
+        	int exitCode = process.waitFor();
+        	if(exitCode != 0) {
+        		throw new RuntimeException("Could not remove unsorted file...");
+        	}
+        }
+    	catch (InterruptedException e) {
+    		throw new RuntimeException("Could not wait for process");
+    	}
+        
+        processBuilder = new ProcessBuilder("gzip", "-f", sortedLLPFile);
+        try {
+        	Process process = processBuilder.start();
+        	
+        	int exitCode = process.waitFor();
+        	if(exitCode != 0) {
+        		throw new RuntimeException("Could not execute gzip...");
+        	}
+        }
+        catch (IOException e) {
+        	throw new RuntimeException("Could not start process");
+		}
+        catch (InterruptedException e) {
+        	throw new RuntimeException("Could not wait for process");
+		}
+        
+        return sortedLLPFile+".gz";
+        
 	}
 	
 	public String getGraphFile() {
