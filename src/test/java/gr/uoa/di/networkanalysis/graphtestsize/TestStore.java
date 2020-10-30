@@ -41,11 +41,11 @@ public class TestStore {
 //	private static int aggregation = 60*60;
 	
 	// Wiki LLP
-	private static final String graphFile =  "wiki.llp.sorted.txt.gz";
-	private static final String basename =  "wiki.llp";
-	private static final boolean headers = false;
-	private static final int k = 2;
-	private static int aggregation = 60*60;
+//	private static final String graphFile =  "wiki.llp.sorted.txt.gz";
+//	private static final String basename =  "wiki.llp";
+//	private static final boolean headers = false;
+//	private static final int k = 2;
+//	private static int aggregation = 60*60;
 
 	// Yahoo
 //	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
@@ -60,6 +60,14 @@ public class TestStore {
 //	private static final boolean headers = false;
 //	private static final int k = 2;
 //	private static int aggregation = 1;
+	
+	// cbtComm LLP
+//	private static final String graphFile =  "cbtComm.llp.sorted.txt.gz";
+//	private static final String basename =  "cbtComm.llp";
+//	private static final boolean headers = false;
+//	private static final int k = 2;
+//	private static int aggregation = 1;
+	
 
 	// cbtPow
 //	private static final String graphFile =  "cbtPow-sorted.txt.gz";
@@ -67,6 +75,13 @@ public class TestStore {
 //	private static final boolean headers = false;
 //	private static final int k = 2;
 //	private static int aggregation = 1;
+	
+	// cbtPow LLP
+	private static final String graphFile =  "cbtPow.llp.sorted.txt.gz";
+	private static final String basename =  "cbtPow.llp";
+	private static final boolean headers = false;
+	private static final int k = 2;
+	private static int aggregation = 1;
 
 	
 	@Test

@@ -17,11 +17,11 @@ public class TestLLP {
 //	private static int aggregation = 24*60*60;
 
     // Wiki
-	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
-	private static final String basename =  "wiki";
-	private static final boolean headers = true;
-	private static final int k = 2;
-	private static int aggregation = 60*60;
+//	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
+//	private static final String basename =  "wiki";
+//	private static final boolean headers = true;
+//	private static final int k = 2;
+//	private static int aggregation = 60*60;
 
     // Yahoo
 //	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
@@ -38,11 +38,11 @@ public class TestLLP {
 //    private static int aggregation = 1;
 
     // cbtPow
-//	private static final String graphFile =  "cbtPow-sorted.txt.gz";
-//	private static final String basename =  "cbtPow";
-//	private static final boolean headers = false;
-//	private static final int k = 2;
-//	private static int aggregation = 1;
+	private static final String graphFile =  "cbtPow-sorted.txt.gz";
+	private static final String basename =  "cbtPow";
+	private static final boolean headers = false;
+	private static final int k = 2;
+	private static int aggregation = 1;
 
     @Test
     public void testLLP() throws FileNotFoundException, IOException {
