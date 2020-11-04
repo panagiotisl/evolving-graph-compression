@@ -318,7 +318,49 @@ public class EvolvingMultiGraph {
 		}
 	}
 	
-	public static String applyLLP(String graphFile, String basename, boolean headers, BVMultiGraph bvgraph, double[] gammas) throws IOException {
+	// Stores a multigraph as a BVGraph without repetition of edges
+	// Serves as an in-between step for extracting an LLP mapping for multigraphs
+	public static void storeAsBVGraph(String multigraphFile, String basename, boolean headers) throws IOException {
+		
+		InputStream fileStream = new FileInputStream(multigraphFile);
+        InputStream gzipStream = new GZIPInputStream(fileStream);
+        Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
+        BufferedReader buffered = new BufferedReader(decoder);
+        File tempFile = File.createTempFile("temp", ".txt");
+        tempFile.deleteOnExit();
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+        String line;
+        if(headers) {
+        	buffered.readLine();
+        }
+        long previousNode = -1;
+        long previousNeighbor = -1;
+        
+        if(headers)
+        	buffered.readLine();
+        
+        while ((line = buffered.readLine()) != null) {
+            String[] tokens = line.split("\\s");
+            long currentNode = Long.parseLong(tokens[0]);
+            long currentNeighbor = Long.parseLong(tokens[1]);
+            
+           	if(!(currentNode == previousNode && currentNeighbor == previousNeighbor)) {
+           		writer.write(String.format("%s\t%s\n", tokens[0], tokens[1]));
+           		previousNode = currentNode;
+           		previousNeighbor = currentNeighbor;
+           	}
+        }
+        
+          
+        writer.close();
+        buffered.close();
+
+        ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
+        BVGraph.store(inputGraph, basename);
+	}
+	
+	public static String applyLLP(String graphFile, String basename, boolean headers, BVGraph bvgraph, double[] gammas) throws IOException {
 
 		InputStream fileStream;
 		InputStream gzipStream;
@@ -326,16 +368,15 @@ public class EvolvingMultiGraph {
 		BufferedReader buffered;
 		String line;
 		
-        MyLayeredLabelPropagation llp = new MyLayeredLabelPropagation(bvgraph, 23);
+        LayeredLabelPropagation llp = new LayeredLabelPropagation(bvgraph, 23);
 
         int[] map = llp.computePermutation(gammas, null);
 
-        File file = new File(basename + ".llp.txt");
+        
+        File tempFile = File.createTempFile(basename, ".llp.txt");
+        tempFile.deleteOnExit();
 
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        FileWriter fw = new FileWriter(tempFile);
         BufferedWriter bw = new BufferedWriter(fw);
 
         fileStream = new FileInputStream(graphFile);
@@ -345,6 +386,7 @@ public class EvolvingMultiGraph {
 
         if(headers)
         	line = buffered.readLine();
+        
         while ((line = buffered.readLine()) != null) {
             String[] splits = line.split("\\s+");
             bw.write(
@@ -357,61 +399,25 @@ public class EvolvingMultiGraph {
         bw.close();
         buffered.close();
         
-        String sortedLLPFile = basename+".llp.sorted.txt";
-        ProcessBuilder processBuilder = new ProcessBuilder("sort", "-k1,1n", "-k2,2n", file.getAbsolutePath());
-        File sortedFile = new File(sortedLLPFile);
-        if (!sortedFile.exists()) {
-            sortedFile.createNewFile();
-        }
-        processBuilder.redirectOutput(sortedFile);
-        try {
-        	
-        	Process process = processBuilder.start();
-        	
-        	int exitCode = process.waitFor();
-        	if(exitCode != 0) {
-        		throw new RuntimeException("Could not execute sorting...");
-        	}
-        }
-        catch (IOException e) {
-        	throw new RuntimeException("Could not start process");
-		}
-        catch (InterruptedException e) {
-        	throw new RuntimeException("Could not wait for process");
-		}
+        String sortThenZip = "sort -k1,1n -k2,2n "+tempFile.getAbsolutePath()+" | gzip > "+basename+".llp.sorted.gz";
         
-        processBuilder = new ProcessBuilder("rm", file.getAbsolutePath());
+        
+        ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", sortThenZip);
+        System.out.println("Executing: "+sortThenZip);
         try {
         	
         	Process process = processBuilder.start();
         	
         	int exitCode = process.waitFor();
         	if(exitCode != 0) {
-        		throw new RuntimeException("Could not remove unsorted file...");
+        		throw new RuntimeException("Could not sort and then zip...");
         	}
         }
     	catch (InterruptedException e) {
     		throw new RuntimeException("Could not wait for process");
-    	}
+    	}     
         
-        processBuilder = new ProcessBuilder("gzip", "-f", sortedLLPFile);
-        try {
-        	Process process = processBuilder.start();
-        	
-        	int exitCode = process.waitFor();
-        	if(exitCode != 0) {
-        		throw new RuntimeException("Could not execute gzip...");
-        	}
-        }
-        catch (IOException e) {
-        	throw new RuntimeException("Could not start process");
-		}
-        catch (InterruptedException e) {
-        	throw new RuntimeException("Could not wait for process");
-		}
-        
-        return sortedLLPFile+".gz";
-        
+        return basename+".llp.sorted.gz";
 	}
 	
 	public String getGraphFile() {

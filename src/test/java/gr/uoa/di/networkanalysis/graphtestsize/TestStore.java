@@ -36,7 +36,7 @@ public class TestStore {
 	// Wiki
 //	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
 //	private static final String basename =  "wiki";
-//	private static final boolean headers = false;
+//	private static final boolean headers = true;
 //	private static final int k = 2;
 //	private static int aggregation = 60*60;
 	
@@ -77,7 +77,7 @@ public class TestStore {
 //	private static int aggregation = 1;
 	
 	// cbtPow LLP
-//	private static final String graphFile =  "cbtPow.llp.sorted.txt.gz";
+//	private static final String graphFile =  "cbtPow.llp.sorted.gz";
 //	private static final String basename =  "cbtPow.llp";
 //	private static final boolean headers = false;
 //	private static final int k = 2;

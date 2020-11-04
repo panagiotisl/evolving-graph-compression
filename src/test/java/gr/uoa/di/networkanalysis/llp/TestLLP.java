@@ -4,10 +4,15 @@ import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.BVMultiGraph;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
+import gr.uoa.di.networkanalysis.MyLayeredLabelPropagation;
+import it.unimi.dsi.law.graph.LayeredLabelPropagation;
+import it.unimi.dsi.webgraph.ArcListASCIIGraph;
+import it.unimi.dsi.webgraph.BVGraph;
 import it.unimi.dsi.webgraph.NodeIterator;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.zip.GZIPInputStream;
 
 public class TestLLP {
 
@@ -19,18 +24,18 @@ public class TestLLP {
 //	private static int aggregation = 24*60*60;
 
     // Wiki
-//	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
-//	private static final String basename =  "wiki";
-//	private static final boolean headers = false;
-//	private static final int k = 2;
-//	private static int aggregation = 60*60;
+	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
+	private static final String basename =  "wiki";
+	private static final boolean headers = true;
+	private static final int k = 2;
+	private static int aggregation = 60*60;
 
     // Yahoo
-	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
-	private static final String basename =  "yahoo";
-	private static final boolean headers = false;
-	private static final int k = 2;
-	private static int aggregation = 15*60;
+//	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
+//	private static final String basename =  "yahoo";
+//	private static final boolean headers = false;
+//	private static final int k = 2;
+//	private static int aggregation = 15*60;
 
     // cbtComm
 //    private static final String graphFile =  "cbtComm-sorted.txt.gz";
@@ -46,16 +51,22 @@ public class TestLLP {
 //	private static final int k = 2;
 //	private static int aggregation = 1;
 
+	
     @Test
-    public void testLLP() throws FileNotFoundException, IOException {
+    public void testLLP() throws Exception {
 
+    	InputStream fileStream;
+		InputStream gzipStream;
+		Reader decoder;
+		BufferedReader buffered;
+		String line;
+    	
     	ClassLoader classLoader = getClass().getClassLoader();
 		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
     	
-//		EvolvingMultiGraph emg = new EvolvingMultiGraph(graphFileResourcePath, headers, k, basename, aggregation);
-//		emg.storeBVMultiGraph();
+		//EvolvingMultiGraph.storeAsBVGraph(graphFileResourcePath, basename, headers);
 		
-		BVMultiGraph bvgraph = BVMultiGraph.load(basename);
+		BVGraph bvgraph = BVGraph.load(basename);
 		
 		double[] gammas = new double[1];
 		double value = .05;
@@ -65,8 +76,8 @@ public class TestLLP {
 			value += step;
 		}
 		
-        String llpFile = EvolvingMultiGraph.applyLLP(graphFileResourcePath, basename, true, bvgraph, gammas);
-        System.out.println(Arrays.toString(gammas));
+		String producedFile =  EvolvingMultiGraph.applyLLP(graphFileResourcePath, basename, headers, bvgraph, gammas);
+		System.out.println(producedFile);
     }
     
 //    @Test
