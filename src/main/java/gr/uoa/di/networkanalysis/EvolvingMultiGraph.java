@@ -326,7 +326,7 @@ public class EvolvingMultiGraph {
 		BufferedReader buffered;
 		String line;
 		
-        LayeredLabelPropagation llp = new LayeredLabelPropagation(bvgraph, 23);
+        MyLayeredLabelPropagation llp = new MyLayeredLabelPropagation(bvgraph, 23);
 
         int[] map = llp.computePermutation(gammas, null);
 

@@ -31,7 +31,7 @@ public class TestTime {
 //	private static int lastLabel = 3819691;
 //	private static final String graphFile = "out.edit-enwiki.sorted.gz";
 //	private static final String basename = "wiki";
-//	private static boolean headers = true;
+//	private static boolean headers = false;
 //	private static String sampleFile = "wiki-sample.txt";
 	
 	//Yahoo
