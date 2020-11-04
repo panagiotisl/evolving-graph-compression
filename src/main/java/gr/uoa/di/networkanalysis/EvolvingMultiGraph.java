@@ -17,8 +17,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 
-import javax.management.RuntimeErrorException;
-
 import it.unimi.dsi.bits.Fast;
 import it.unimi.dsi.fastutil.io.BinIO;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -360,7 +358,7 @@ public class EvolvingMultiGraph {
         BVGraph.store(inputGraph, basename);
 	}
 	
-	public static String applyLLP(String graphFile, String basename, boolean headers, BVGraph bvgraph, double[] gammas) throws IOException {
+	public static String applyLLP(String graphFile, String basename, boolean headers, BVGraph bvgraph, double[] gammas) throws Exception {
 
 		InputStream fileStream;
 		InputStream gzipStream;
@@ -373,11 +371,9 @@ public class EvolvingMultiGraph {
         int[] map = llp.computePermutation(gammas, null);
 
         
-        File tempFile = File.createTempFile(basename, ".llp.txt");
-        tempFile.deleteOnExit();
+        File tempFile = new File(basename+".llp.txt");
 
-        FileWriter fw = new FileWriter(tempFile);
-        BufferedWriter bw = new BufferedWriter(fw);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
 
         fileStream = new FileInputStream(graphFile);
         gzipStream = new GZIPInputStream(fileStream);
@@ -399,25 +395,23 @@ public class EvolvingMultiGraph {
         bw.close();
         buffered.close();
         
-        String sortThenZip = "sort -k1,1n -k2,2n "+tempFile.getAbsolutePath()+" | gzip > "+basename+".llp.sorted.gz";
-        
-        
-        ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", sortThenZip);
-        System.out.println("Executing: "+sortThenZip);
-        try {
-        	
-        	Process process = processBuilder.start();
-        	
-        	int exitCode = process.waitFor();
-        	if(exitCode != 0) {
-        		throw new RuntimeException("Could not sort and then zip...");
-        	}
+        int exitCode = new ProcessBuilder("/bin/sh", "-c", "gzip "+tempFile.getAbsolutePath()).start().waitFor();
+        if(exitCode != 0) {
+        	throw new Exception("could not zip mapped file. exit code: "+exitCode);
         }
-    	catch (InterruptedException e) {
-    		throw new RuntimeException("Could not wait for process");
-    	}     
         
-        return basename+".llp.sorted.gz";
+        String sortThenZip = "zcat "+tempFile.getAbsolutePath()+".gz|sort -k1,1n -k2,2n "+"| gzip > "+basename+".llp.sorted.txt.gz";
+        exitCode = new ProcessBuilder("/bin/sh", "-c", sortThenZip).start().waitFor();
+        if(exitCode != 0) {
+        	throw new Exception("could not sort and then zip the mapped zipped file. exit code: "+exitCode);
+        }
+        
+        exitCode = new ProcessBuilder("/bin/sh", "-c", "rm -f "+basename+".llp.txt.gz").start().waitFor();
+        if(exitCode != 0) {
+        	throw new Exception("could not delete non sorted llp file. exit code: "+exitCode);
+        }
+        
+        return basename+".llp.sorted.txt.gz";
 	}
 	
 	public String getGraphFile() {
