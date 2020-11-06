@@ -318,7 +318,7 @@ public class EvolvingMultiGraph {
 	
 	// Stores a multigraph as a BVGraph without repetition of edges
 	// Serves as an in-between step for extracting an LLP mapping for multigraphs
-	public static void storeWithoutDiplicates(String multigraphFile, String basename, boolean headers) throws IOException {
+	public static void storeWithoutDuplicates(String multigraphFile, String basename, boolean headers) throws IOException {
 		
 		InputStream fileStream = new FileInputStream(multigraphFile);
         InputStream gzipStream = new GZIPInputStream(fileStream);
@@ -337,7 +337,7 @@ public class EvolvingMultiGraph {
         	buffered.readLine();
         
         while ((line = buffered.readLine()) != null) {
-            String[] tokens = line.split("\\s");
+            String[] tokens = line.split("\\s+");
             long currentNode = Long.parseLong(tokens[0]);
             long currentNeighbor = Long.parseLong(tokens[1]);
             

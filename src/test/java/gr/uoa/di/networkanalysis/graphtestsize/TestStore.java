@@ -27,11 +27,11 @@ public class TestStore {
 //	private static int aggregation = 24*60*60;
 	
 	// Flickr LLP
-	private static final String graphFile =  "flickr.llp.sorted.txt.gz";
-	private static final String basename =  "flickr.llp";
-	private static final boolean headers = false;
-	private static final int k = 2;
-	private static int aggregation = 24*60*60;
+//	private static final String graphFile =  "flickr.llp.sorted.txt.gz";
+//	private static final String basename =  "flickr.llp";
+//	private static final boolean headers = false;
+//	private static final int k = 2;
+//	private static int aggregation = 24*60*60;
 
 	// Wiki
 //	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
@@ -41,11 +41,11 @@ public class TestStore {
 //	private static int aggregation = 60*60;
 	
 	// Wiki LLP
-//	private static final String graphFile =  "wiki.llp.sorted.txt.gz";
-//	private static final String basename =  "wiki.llp";
-//	private static final boolean headers = false;
-//	private static final int k = 2;
-//	private static int aggregation = 60*60;
+	private static final String graphFile =  "wiki.llp.sorted.txt.gz";
+	private static final String basename =  "wiki.llp";
+	private static final boolean headers = false;
+	private static final int k = 2;
+	private static int aggregation = 60*60;
 
 	// Yahoo
 //	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";

@@ -10,6 +10,7 @@ import it.unimi.dsi.webgraph.NodeIterator;
 import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
 
 public class TestLLP {
 
@@ -21,18 +22,18 @@ public class TestLLP {
 //	private static int aggregation = 24*60*60;
 
     // Wiki
-	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
-	private static final String basename =  "wiki";
-	private static final boolean headers = false;
-	private static final int k = 2;
-	private static int aggregation = 60*60;
-
-    // Yahoo
-//	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
-//	private static final String basename =  "yahoo";
+//	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
+//	private static final String basename =  "wiki";
 //	private static final boolean headers = false;
 //	private static final int k = 2;
-//	private static int aggregation = 15*60;
+//	private static int aggregation = 60*60;
+
+    // Yahoo
+	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
+	private static final String basename =  "yahoo";
+	private static final boolean headers = false;
+	private static final int k = 2;
+	private static int aggregation = 15*60;
 
     // cbtComm
 //    private static final String graphFile =  "cbtComm-sorted.txt.gz";
@@ -56,7 +57,7 @@ public class TestLLP {
 		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
     	
 		// Store the graph without duplicate edges
-		EvolvingMultiGraph.storeWithoutDiplicates(graphFileResourcePath, basename, headers);
+		EvolvingMultiGraph.storeWithoutDuplicates(graphFileResourcePath, basename, headers);
 		
 		BVMultiGraph bvgraph = BVMultiGraph.load(basename);
 		
@@ -90,10 +91,25 @@ public class TestLLP {
         Assert.assertEquals("num nodes not the same", graph1.numNodes(), graph2.numNodes());
         Assert.assertEquals("num arcs not the same", graph1.numArcs(), graph2.numArcs());
         
-        NodeIterator iter = graph1.nodeIterator();
-        while(iter.hasNext()) {
+        ClassLoader classLoader = getClass().getClassLoader();
+		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
+		
+        FileInputStream fileStream = new FileInputStream(graphFileResourcePath);
+        GZIPInputStream gzipStream = new GZIPInputStream(fileStream);
+        InputStreamReader decoder = new InputStreamReader(gzipStream, "UTF-8");
+        BufferedReader buffered = new BufferedReader(decoder);
+        String line;
+        if(headers)
+        	buffered.readLine();
+        
+        int previous = -1;
+        while((line = buffered.readLine()) != null) {
         	
-	    	int node = iter.nextInt();
+	    	String[] tokens = line.split("\\s+");
+            int node = Integer.parseInt(tokens[0]);
+            if(node == previous) continue;
+            previous = node;
+
 	    	int[] successors1 = graph1.successorArray(node);
 	    	int[] successors2 = graph2.successorArray(map[node]);
 	    	int outdegree1 = graph1.outdegree(node);
