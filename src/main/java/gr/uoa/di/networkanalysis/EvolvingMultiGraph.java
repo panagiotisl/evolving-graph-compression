@@ -318,7 +318,7 @@ public class EvolvingMultiGraph {
 	
 	// Stores a multigraph as a BVGraph without repetition of edges
 	// Serves as an in-between step for extracting an LLP mapping for multigraphs
-	public static void storeAsBVGraph(String multigraphFile, String basename, boolean headers) throws IOException {
+	public static void storeWithoutDiplicates(String multigraphFile, String basename, boolean headers) throws IOException {
 		
 		InputStream fileStream = new FileInputStream(multigraphFile);
         InputStream gzipStream = new GZIPInputStream(fileStream);
@@ -329,9 +329,7 @@ public class EvolvingMultiGraph {
 
         BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
         String line;
-        if(headers) {
-        	buffered.readLine();
-        }
+
         long previousNode = -1;
         long previousNeighbor = -1;
         
@@ -343,11 +341,11 @@ public class EvolvingMultiGraph {
             long currentNode = Long.parseLong(tokens[0]);
             long currentNeighbor = Long.parseLong(tokens[1]);
             
-           	if(!(currentNode == previousNode && currentNeighbor == previousNeighbor)) {
-           		writer.write(String.format("%s\t%s\n", tokens[0], tokens[1]));
-           		previousNode = currentNode;
-           		previousNeighbor = currentNeighbor;
-           	}
+            if(currentNode == previousNode && currentNeighbor == previousNeighbor) continue;
+
+            writer.write(String.format("%s\t%s\n", tokens[0], tokens[1]));
+       		previousNode = currentNode;
+       		previousNeighbor = currentNeighbor;
         }
         
           
@@ -355,10 +353,10 @@ public class EvolvingMultiGraph {
         buffered.close();
 
         ArcListASCIIGraph inputGraph = new ArcListASCIIGraph(new FileInputStream(tempFile), 0);
-        BVGraph.store(inputGraph, basename);
+        BVMultiGraph.store(inputGraph, basename);
 	}
 	
-	public static int[] applyLLP(String graphFile, String basename, boolean headers, BVGraph bvgraph, double[] gammas) throws Exception {
+	public static int[] applyLLP(String graphFile, String basename, boolean headers, BVMultiGraph bvgraph, double[] gammas) throws Exception {
 
 		InputStream fileStream;
 		InputStream gzipStream;
@@ -387,36 +385,23 @@ public class EvolvingMultiGraph {
             String[] splits = line.split("\\s+");
             int node1 = Integer.parseInt(splits[0]);
             int node2 = Integer.parseInt(splits[1]);
-            if(node1 == 371) {
-            	System.out.println("Mapping:");
-            	System.out.println(node1+" "+node2);
-            	System.out.println(map[node1]+" "+map[node2]);
-            }
-            bw.write(
-                    map[Integer.parseInt(splits[0])] + "\t" +
-                            map[Integer.parseInt(splits[1])] + "\t" +
-                            splits[2] + "\t"
-                            + splits[3] + "\n");
+            bw.write(map[node1] + "\t" + map[node2] + "\t" + splits[2] + "\t" + splits[3]);
+            bw.newLine();
         }
 
         bw.close();
         buffered.close();
         
-        int exitCode = new ProcessBuilder("/bin/sh", "-c", "gzip "+tempFile.getAbsolutePath()).start().waitFor();
+        String sortThenZip = String.format("sort -k1,1n -k2,2n %s | gzip > %s", tempFile.getAbsolutePath(), basename+".llp.sorted.txt.gz");
+        int exitCode = new ProcessBuilder("/bin/sh", "-c", sortThenZip).start().waitFor();
         if(exitCode != 0) {
-        	throw new Exception("could not zip mapped file. exit code: "+exitCode);
+        	throw new Exception("could not sort and then zip the mapped file. exit code: "+exitCode);
         }
         
-        String sortThenZip = "zcat "+tempFile.getAbsolutePath()+".gz|sort -k1,1n -k2,2n "+"| gzip > "+basename+".llp.sorted.txt.gz";
-        exitCode = new ProcessBuilder("/bin/sh", "-c", sortThenZip).start().waitFor();
-        if(exitCode != 0) {
-        	throw new Exception("could not sort and then zip the mapped zipped file. exit code: "+exitCode);
-        }
-        
-        exitCode = new ProcessBuilder("/bin/sh", "-c", "rm -f "+basename+".llp.txt.gz").start().waitFor();
-        if(exitCode != 0) {
-        	throw new Exception("could not delete non sorted llp file. exit code: "+exitCode);
-        }
+//        exitCode = new ProcessBuilder("/bin/sh", "-c", "rm -f "+basename+".llp.txt.gz").start().waitFor();
+//        if(exitCode != 0) {
+//        	throw new Exception("could not delete non sorted llp file. exit code: "+exitCode);
+//        }
         
         return map;
 	}

@@ -5,29 +5,27 @@ import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.BVMultiGraph;
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
-import it.unimi.dsi.webgraph.BVGraph;
 import it.unimi.dsi.webgraph.NodeIterator;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 public class TestLLP {
 
     // Flickr
-	private static final String graphFile =  "out.flickr-growth.sorted.gz";
-	private static final String basename =  "flickr";
-	private static final boolean headers = true;
-	private static final int k = 2;
-	private static int aggregation = 24*60*60;
+//	private static final String graphFile =  "out.flickr-growth.sorted.gz";
+//	private static final String basename =  "flickr";
+//	private static final boolean headers = false;
+//	private static final int k = 2;
+//	private static int aggregation = 24*60*60;
 
     // Wiki
-//	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
-//	private static final String basename =  "wiki";
-//	private static final boolean headers = true;
-//	private static final int k = 2;
-//	private static int aggregation = 60*60;
+	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
+	private static final String basename =  "wiki";
+	private static final boolean headers = false;
+	private static final int k = 2;
+	private static int aggregation = 60*60;
 
     // Yahoo
 //	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
@@ -57,9 +55,10 @@ public class TestLLP {
     	ClassLoader classLoader = getClass().getClassLoader();
 		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
     	
-		EvolvingMultiGraph.storeAsBVGraph(graphFileResourcePath, basename, headers);
+		// Store the graph without duplicate edges
+		EvolvingMultiGraph.storeWithoutDiplicates(graphFileResourcePath, basename, headers);
 		
-		BVGraph bvgraph = BVGraph.load(basename);
+		BVMultiGraph bvgraph = BVMultiGraph.load(basename);
 		
 //		double[] gammas = new double[50];
 //		double value = .01;
@@ -72,7 +71,7 @@ public class TestLLP {
 		
 		int[] map = EvolvingMultiGraph.applyLLP(graphFileResourcePath, basename, headers, bvgraph, gammas);
 		
-		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("map.ser"));
+		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(basename+".mapserialize"));
         out.writeObject(map);
         out.flush();
         out.close();
@@ -81,35 +80,53 @@ public class TestLLP {
     
     @Test
     public void testValidLLP() throws Exception {
-    	ObjectInputStream in = new ObjectInputStream(new FileInputStream("map.ser"));
+    	ObjectInputStream in = new ObjectInputStream(new FileInputStream(basename+".mapserialize"));
         int[] map = (int[]) in.readObject();
         in.close();
         
-        BVMultiGraph graph1 = BVMultiGraph.load("flickr");
-        BVMultiGraph graph2 = BVMultiGraph.load("flickr.llp");
+        BVMultiGraph graph1 = BVMultiGraph.load(basename);
+        BVMultiGraph graph2 = BVMultiGraph.load(basename+".llp");
+        
+        Assert.assertEquals("num nodes not the same", graph1.numNodes(), graph2.numNodes());
+        Assert.assertEquals("num arcs not the same", graph1.numArcs(), graph2.numArcs());
         
         NodeIterator iter = graph1.nodeIterator();
         while(iter.hasNext()) {
-        	int node = iter.nextInt();
-        	System.out.println("Node: "+node+" mapped node: "+map[node]);
-        	int[] successors1 = graph1.successorArray(node);
-        	int[] successors2 = graph2.successorArray(map[node]);
-        	int outdegree1 = graph1.outdegree(node);
-        	int outdegree2 = graph2.outdegree(map[node]);
-
-        		System.out.println(Arrays.toString(Arrays.copyOfRange(successors1, 0, outdegree1)));
-        		System.out.println(Arrays.toString(Arrays.copyOfRange(successors2, 0, outdegree2)));
-        	Assert.assertEquals("Unequals lengths", outdegree1, outdegree2);
-        	Set<Integer> set1 = new HashSet<>();
-        	Set<Integer> set2 = new HashSet<>();
-        	for(int i = 0; i < outdegree1; i++) {
-        		set1.add(map[successors1[i]]);
+        	
+	    	int node = iter.nextInt();
+	    	int[] successors1 = graph1.successorArray(node);
+	    	int[] successors2 = graph2.successorArray(map[node]);
+	    	int outdegree1 = graph1.outdegree(node);
+	    	int outdegree2 = graph2.outdegree(map[node]);
+	    	Set<Integer> set1 = null;
+	    	Set<Integer> set2 = null;
+	        try {
+	        	Assert.assertEquals("Unequals lengths", outdegree1, outdegree2);
+	        	set1 = new HashSet<>();
+	        	set2 = new HashSet<>();
+	        	for(int i = 0; i < outdegree1; i++) {
+	        		set1.add(map[successors1[i]]);
+	        	}
+	        	for(int i = 0; i < outdegree2; i++) {
+	        		set2.add(successors2[i]);
+	        	}
+	        	if(!set1.equals(set2)) {
+	        		throw new AssertionError("sets not equal");
+	        	}
         	}
-        	for(int i = 0; i < outdegree2; i++) {
-        		set2.add(successors2[i]);
-        	}
-        	if(!set1.equals(set2)) {
-        		throw new RuntimeException("sets not equal");
+        	catch(AssertionError e) {
+        		System.out.println("------------");
+        		System.out.println("Assertion Error:");
+        		System.out.println(e);
+        		System.out.println("Node: "+node);
+        		System.out.println("Mapped node: "+map[node]);
+        		System.out.println("Outdegree 1:"+outdegree1);
+        		System.out.println("Outdegree 2:"+outdegree2);
+        		if(e.getMessage().equals("sets not equal")) {
+        			System.out.println("Set 1 size: "+set1.size());
+        			System.out.println("Set 2 size: "+set2.size());
+        		}
+        		System.out.println("------------");
         	}
         }
 
