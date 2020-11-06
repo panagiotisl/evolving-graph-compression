@@ -385,6 +385,13 @@ public class EvolvingMultiGraph {
         
         while ((line = buffered.readLine()) != null) {
             String[] splits = line.split("\\s+");
+            int node1 = Integer.parseInt(splits[0]);
+            int node2 = Integer.parseInt(splits[1]);
+            if(node1 == 371) {
+            	System.out.println("Mapping:");
+            	System.out.println(node1+" "+node2);
+            	System.out.println(map[node1]+" "+map[node2]);
+            }
             bw.write(
                     map[Integer.parseInt(splits[0])] + "\t" +
                             map[Integer.parseInt(splits[1])] + "\t" +
