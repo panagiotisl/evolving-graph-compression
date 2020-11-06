@@ -1,5 +1,7 @@
 package gr.uoa.di.networkanalysis.llp;
 
+import org.apache.lucene.search.similarities.IBSimilarity;
+import org.junit.Assert;
 import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.BVMultiGraph;
@@ -24,11 +26,11 @@ public class TestLLP {
 //	private static int aggregation = 24*60*60;
 
     // Wiki
-//	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
-//	private static final String basename =  "wiki";
-//	private static final boolean headers = true;
-//	private static final int k = 2;
-//	private static int aggregation = 60*60;
+	private static final String graphFile =  "out.edit-enwiki.sorted.gz";
+	private static final String basename =  "wiki";
+	private static final boolean headers = true;
+	private static final int k = 2;
+	private static int aggregation = 60*60;
 
     // Yahoo
 //	private static final String graphFile =  "yahoo-G5-sorted.tsv.gz";
@@ -38,11 +40,11 @@ public class TestLLP {
 //	private static int aggregation = 15*60;
 
     // cbtComm
-    private static final String graphFile =  "cbtComm-sorted.txt.gz";
-    private static final String basename =  "cbtComm";
-    private static final boolean headers = false;
-    private static final int k = 2;
-    private static int aggregation = 1;
+//    private static final String graphFile =  "cbtComm-sorted.txt.gz";
+//    private static final String basename =  "cbtComm";
+//    private static final boolean headers = false;
+//    private static final int k = 2;
+//    private static int aggregation = 1;
 
     // cbtPow
 //	private static final String graphFile =  "cbtPow-sorted.txt.gz";
@@ -52,7 +54,7 @@ public class TestLLP {
 //	private static int aggregation = 1;
 
 	
-    @Test
+//    @Test
     public void testLLP() throws Exception {
 
     	InputStream fileStream;
@@ -64,20 +66,26 @@ public class TestLLP {
     	ClassLoader classLoader = getClass().getClassLoader();
 		String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
     	
-		EvolvingMultiGraph.storeAsBVGraph(graphFileResourcePath, basename, headers);
+		//EvolvingMultiGraph.storeAsBVGraph(graphFileResourcePath, basename, headers);
 		
 		BVGraph bvgraph = BVGraph.load(basename);
 		
-		double[] gammas = new double[1];
-		double value = .05;
-		double step = .1;
-		for(int i = 0; i < gammas.length; i++) {
-			gammas[i] = value;
-			value += step;
-		}
+//		double[] gammas = new double[50];
+//		double value = .01;
+//		double step = .02;
+//		for(int i = 0; i < gammas.length; i++) {
+//			gammas[i] = value;
+//			value += step;
+//		}
+		double[] gammas = new double[] {0.0000000001};
 		
-		String producedFile =  EvolvingMultiGraph.applyLLP(graphFileResourcePath, basename, headers, bvgraph, gammas);
-		System.out.println(producedFile);
+		int[] map = EvolvingMultiGraph.applyLLP(graphFileResourcePath, basename, headers, bvgraph, gammas);
+		
+		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("map.ser"));
+        out.writeObject(map);
+        out.flush();
+        out.close();
+		
     }
     
 //    @Test
@@ -91,5 +99,31 @@ public class TestLLP {
     			System.out.println(node);
     		}
     	}
+    }
+    
+    @Test
+    public void testValidLLP() throws Exception {
+    	ObjectInputStream in = new ObjectInputStream(new FileInputStream("map.ser"));
+        int[] map = (int[]) in.readObject();
+        in.close();
+        
+        System.out.println(map.length);
+        
+        BVMultiGraph graph1 = BVMultiGraph.load("wiki");
+        BVMultiGraph graph2 = BVMultiGraph.load("wiki.llp");
+        
+        NodeIterator iter = graph1.nodeIterator();
+        while(iter.hasNext()) {
+        	int node = iter.nextInt();
+        	System.out.println("Checking node: "+node);
+        	System.out.println("Mapped to: "+map[node]);
+        	int[] successors1 = iter.successorArray();
+        	int[] successors2 = graph2.successorArray(map[node]);
+        	Assert.assertEquals("Unequals lengths", successors1.length, successors2.length);
+        	for(int i = 0; i < successors2.length; i++) {
+        		Assert.assertEquals("Mapping error", successors2[i], map[successors1[i]]);
+        	}
+        }
+
     }
 }

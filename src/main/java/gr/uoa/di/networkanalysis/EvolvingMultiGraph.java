@@ -358,7 +358,7 @@ public class EvolvingMultiGraph {
         BVGraph.store(inputGraph, basename);
 	}
 	
-	public static String applyLLP(String graphFile, String basename, boolean headers, BVGraph bvgraph, double[] gammas) throws Exception {
+	public static int[] applyLLP(String graphFile, String basename, boolean headers, BVGraph bvgraph, double[] gammas) throws Exception {
 
 		InputStream fileStream;
 		InputStream gzipStream;
@@ -411,7 +411,7 @@ public class EvolvingMultiGraph {
         	throw new Exception("could not delete non sorted llp file. exit code: "+exitCode);
         }
         
-        return basename+".llp.sorted.txt.gz";
+        return map;
 	}
 	
 	public String getGraphFile() {
