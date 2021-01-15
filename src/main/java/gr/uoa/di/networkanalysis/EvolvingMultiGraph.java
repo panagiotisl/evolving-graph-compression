@@ -13,8 +13,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
 import it.unimi.dsi.bits.Fast;
@@ -38,7 +42,10 @@ public class EvolvingMultiGraph {
 	protected EliasFanoMonotoneLongBigList efindex;
 	protected byte[] timestamps;
 	protected long minTimestamp;
-	
+
+	LongArrayList offsetsIndex= null;
+        private long currentOffset;
+
 	public EvolvingMultiGraph(String graphFile, boolean headers, int zetaK, String basename, long aggregationFactor) {
 		super();
 		this.graphFile = graphFile;
@@ -74,7 +81,7 @@ public class EvolvingMultiGraph {
         return minTimestamp;
 	}*/
 	
-	protected long writeTimestampsToFile(ArrayList<Long> currentNeighborsTimestamps, OutputBitStream obs, long minTimestamp) throws IOException {
+	protected long writeTimestampsToFile(List<Long> currentNeighborsTimestamps, OutputBitStream obs, long minTimestamp) throws IOException {
 
 		// Returns the number of bits appended to the file
 		long ret = 0;	
@@ -146,38 +153,31 @@ public class EvolvingMultiGraph {
         }
         // The file we will write the results to 
         final OutputBitStream obs = new OutputBitStream(new FileOutputStream(basename+".timestamps"), 1024 * 1024);
-        LongArrayList offsetsIndex= new LongArrayList();
-        long currentOffset = obs.writeLong(minTimestamp, 64);
+        offsetsIndex= new LongArrayList();
+        currentOffset = obs.writeLong(minTimestamp, 64);
 
         int currentNode = 0;
         ArrayList<Long> currentNeighborsTimestamps = new ArrayList<>();
         String line;
         
+	ExecutorService executorService = Executors.newSingleThreadExecutor();
+
         while ((line = buffered.readLine()) != null) {
             //String[] tokens = line.split("\\s+");
             String[] tokens = line.split("\t");
             int node = Integer.parseInt(tokens[0]);
-            int neighbor = Integer.parseInt(tokens[1]);
             long timestamp = Long.parseLong(tokens[3]);
 
             int previous = currentNode;
             
             // If you find a new currentNode in the file, write the results you have so far about the current node.
             if(node != currentNode) {
-            	offsetsIndex.add(currentOffset);
-            	currentOffset += writeTimestampsToFile(currentNeighborsTimestamps, obs, minTimestamp);
+                executorService.submit(new TimeStampsWriter(currentNeighborsTimestamps, obs, node, previous));
             	
             	// Prepare the variables for the next currentNode
             	currentNode = node;
             	currentNeighborsTimestamps = new ArrayList<Long>();
             	currentNeighborsTimestamps.add(timestamp);
-            	
-            	// If at least one node was skipped, add the current offset to the index for each node in-between
-                if(node > previous + 1) {
-                	for(int i = 0; i < node - previous - 1; i++) {
-                		offsetsIndex.add(currentOffset);
-                	}
-                }
             	
             }
             else {
@@ -185,9 +185,10 @@ public class EvolvingMultiGraph {
             }
         }
         // Write the last node. It was not written because no change in node != currentNode was detected
-    	offsetsIndex.add(currentOffset);
-    	currentOffset += writeTimestampsToFile(currentNeighborsTimestamps, obs, minTimestamp);
-        
+        executorService.submit(new TimeStampsWriter(currentNeighborsTimestamps, obs, 0, 0));
+       
+       	executorService.shutdown();
+
         obs.close();
         buffered.close();
 
@@ -198,6 +199,9 @@ public class EvolvingMultiGraph {
         oos.writeObject(efmlbl);
         oos.close();
         fos.close();
+    	
+	offsetsIndex = null;
+	
 	}
 	
 	public void load() throws Exception {
@@ -347,4 +351,38 @@ public class EvolvingMultiGraph {
 	public long getMinTimestamp() {
 		return minTimestamp;
 	}
+
+	class TimeStampsWriter implements Runnable {
+
+
+        private List<Long> currentNeighborsTimestamps;
+        private OutputBitStream obs;
+        private int node;
+        private int previous;
+
+        public TimeStampsWriter(List<Long> currentNeighborsTimestamps, OutputBitStream obs, int node, int previous) {
+	        this.currentNeighborsTimestamps = currentNeighborsTimestamps;
+	        this.obs = obs;
+	        this.node = node;
+	        this.previous = previous;
+	    }
+
+	    @Override
+	    public void run() {
+	        offsetsIndex.add(currentOffset);
+            try {
+                currentOffset += writeTimestampsToFile(currentNeighborsTimestamps, obs, minTimestamp);
+            } catch (IOException e) {
+            }
+         // If at least one node was skipped, add the current offset to the index for each node in-between
+            if(node > previous + 1) {
+                for(int i = 0; i < node - previous - 1; i++) {
+                    offsetsIndex.add(currentOffset);
+                }
+            }
+	    }
+
+	}
+
+
 }
