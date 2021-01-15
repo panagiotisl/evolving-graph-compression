@@ -233,7 +233,7 @@ public class EvolvingMultiGraph {
 			t = Fast.nat2int(ibs.readLongZeta(zetaK));
 			t = TimestampComparerAggregator.reverse(previous, t, aggregationFactor);
 
-			if(t >= t1 && t1 <= t2) {
+			if(t >= t1 && t <= t2) {
 				results.add(n);
 			}
 
