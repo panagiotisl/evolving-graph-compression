@@ -18,7 +18,7 @@ public class Compress {
     private static String[] aggregationsStr = new String[]{"1", "15*60", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         if ("-f".equals(args[0])) {
 
@@ -36,7 +36,7 @@ public class Compress {
                             k,
                             basename,
                             aggregations[j]
-                    );
+                            );
 
                     emg.storeTimestampsAndIndex();
 
@@ -49,20 +49,20 @@ public class Compress {
             writer.close();
 
         } else {
-                        String graphFile = args[1];
-                        String basename = args[2];
+            String graphFile = args[1];
+            String basename = args[2];
 
-                        long tic = System.nanoTime();
-                        EvolvingMultiGraph emg = new EvolvingMultiGraph(
-                                graphFile,
-                                headers,
-                                k,
-                                basename,
-                                factor
-                        );
+            long tic = System.nanoTime();
+            EvolvingMultiGraph emg = new EvolvingMultiGraph(
+                    graphFile,
+                    headers,
+                    k,
+                    basename,
+                    factor
+                    );
 
-                        emg.store();
-                        System.out.println("Test store: "+(System.nanoTime()-tic));
+            emg.store();
+            System.out.println("Test store: "+(System.nanoTime()-tic));
 
         }
     }
