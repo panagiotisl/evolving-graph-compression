@@ -48,7 +48,7 @@ public class EvolvingMultiGraph {
 		this.aggregationFactor = aggregationFactor;
 	}
 
-	protected long findMinimumTimestamp() throws IOException {
+	/*protected long findMinimumTimestamp() throws IOException {
 		InputStream fileStream = new FileInputStream(graphFile);
         InputStream gzipStream = new GZIPInputStream(fileStream);
         Reader decoder = new InputStreamReader(gzipStream, "UTF-8");
@@ -72,7 +72,7 @@ public class EvolvingMultiGraph {
         buffered.close();
         
         return minTimestamp;
-	}
+	}*/
 	
 	protected long writeTimestampsToFile(ArrayList<Long> currentNeighborsTimestamps, OutputBitStream obs, long minTimestamp) throws IOException {
 
@@ -113,7 +113,8 @@ public class EvolvingMultiGraph {
         // While generating the tmp file for the arc list, find the minimum timestamp of the file
         Long tmpMinTimestamp = null;
         while ((line = buffered.readLine()) != null) {
-            String[] tokens = line.split("\\s");
+            //String[] tokens = line.split("\\s");
+            String[] tokens = line.split("\t");
            	writer.write(String.format("%s\t%s\n", tokens[0], tokens[1]));
            	long timestamp = Long.parseLong(tokens[3]);
             if(tmpMinTimestamp == null || timestamp < tmpMinTimestamp) {
@@ -153,7 +154,8 @@ public class EvolvingMultiGraph {
         String line;
         
         while ((line = buffered.readLine()) != null) {
-            String[] tokens = line.split("\\s+");
+            //String[] tokens = line.split("\\s+");
+            String[] tokens = line.split("\t");
             int node = Integer.parseInt(tokens[0]);
             int neighbor = Integer.parseInt(tokens[1]);
             long timestamp = Long.parseLong(tokens[3]);
