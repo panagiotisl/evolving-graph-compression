@@ -14,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 
@@ -217,14 +218,38 @@ public class EvolvingMultiGraph {
 		minTimestamp = ibs.readLong(64);
 		ibs.close();
 	}
-	
+
+	public List<Integer> getNeighbors(int node, long t1, long t2) throws Exception{
+		ArrayList<Integer> results = new ArrayList<>();
+
+		LazyIntIterator it = graph.successors(node);
+		InputBitStream ibs = new InputBitStream(timestamps);
+		ibs.position(efindex.getLong(node));
+
+		long previous = minTimestamp;
+		long t;
+		int n, pos = 0;
+		while((n = it.nextInt()) != -1) {
+			t = Fast.nat2int(ibs.readLongZeta(zetaK));
+			t = TimestampComparerAggregator.reverse(previous, t, aggregationFactor);
+
+			if(t >= t1 && t1 <= t2) {
+				results.add(n);
+			}
+
+			previous = t;
+			pos++;
+		}
+
+		return results;
+	}
+
 	public boolean isNeighbor(int node, int neighbor) {
 		LazyIntIterator it = graph.successors(node);
 		int n = -1;
 		while((n = it.nextInt()) != -1) {
-			return true;
-			//			if(n == neighbor) return true;
-//			else if(n > neighbor) return false;
+			if(n == neighbor) return true;
+			else if(n > neighbor) return false;
 		}
 		
 		return false;
@@ -255,7 +280,7 @@ public class EvolvingMultiGraph {
 		ibs.position(efindex.getLong(node));
 		// Skip everything up to from
 		long previous = minTimestamp;
-		for(int i =0; i < from; i++) {
+		for(int i = 0; i < from; i++) {
 			t = Fast.nat2int(ibs.readLongZeta(zetaK));
 			t = TimestampComparerAggregator.reverse(previous, t, aggregationFactor);
 			previous = t;
