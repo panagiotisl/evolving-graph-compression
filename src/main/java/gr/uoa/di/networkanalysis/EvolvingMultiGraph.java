@@ -92,7 +92,7 @@ public class EvolvingMultiGraph {
         executorService.execute(()-> {storeBVMultiGraph();});
         executorService.execute(()-> {storeTimestampsAndIndex();});
         executorService.shutdown();
-        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 
     public void storeBVMultiGraph() {
