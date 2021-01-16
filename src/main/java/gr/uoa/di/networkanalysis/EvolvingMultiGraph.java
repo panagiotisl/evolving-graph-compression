@@ -156,6 +156,7 @@ public class EvolvingMultiGraph {
             executorService.submit(new TimeStampsWriter(currentNeighborsTimestamps, obs, 0, 0));
 
             executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
             obs.close();
             buffered.close();
@@ -170,6 +171,7 @@ public class EvolvingMultiGraph {
 
             offsetsIndex = null;
         } catch (IOException e) {
+        } catch (InterruptedException e) {
         }
 
     }
