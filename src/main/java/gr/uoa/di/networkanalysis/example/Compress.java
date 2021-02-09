@@ -28,7 +28,7 @@ public class Compress {
             BufferedWriter writer = new BufferedWriter(new FileWriter(basename+"-results.txt"));
 
             for(int k = 2; k < 8; k++) {
-                for(int j = 0; j < 2/*aggregations.length*/; j++) {
+                for(int j = 0; j < aggregations.length; j++) {
 
                     EvolvingMultiGraph emg = new EvolvingMultiGraph(
                             graphFile,
