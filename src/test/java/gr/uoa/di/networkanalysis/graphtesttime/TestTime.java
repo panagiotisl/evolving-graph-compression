@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import gr.uoa.di.networkanalysis.EvolvingMultiGraph;
@@ -87,6 +88,14 @@ public class TestTime {
 //    private static final String basename = "yahoo-G5-base";
 //    private static boolean headers = false;
 //    private static String sampleFile = "yahoo-sample-head.txt";
+
+        @Before
+        public void createCompressedGraph() throws IOException, InterruptedException {
+            ClassLoader classLoader = getClass().getClassLoader();
+            String graphFileResourcePath = classLoader.getResource(graphFile).getPath();
+            EvolvingMultiGraph emg = new EvolvingMultiGraph(graphFileResourcePath, headers, k, basename, aggregation);
+            emg.store();
+        }
 
 	@Test
 	public void computeFullRetrievalOfNeighborsForRandomNodesTime() throws Exception {
