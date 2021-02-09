@@ -24,7 +24,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import it.unimi.dsi.bits.Fast;
+import it.unimi.dsi.fastutil.BigArrays;
 import it.unimi.dsi.fastutil.io.BinIO;
+import it.unimi.dsi.fastutil.io.FastMultiByteArrayInputStream;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.io.InputBitStream;
 import it.unimi.dsi.io.OutputBitStream;
@@ -43,6 +45,7 @@ public class EvolvingMultiGraph {
     protected BVMultiGraph graph;
     protected EliasFanoMonotoneLongBigList efindex;
     protected byte[] timestamps;
+    protected FastMultiByteArrayInputStream timestampsStream;
     protected long minTimestamp;
 
     LongArrayList offsetsIndex= null;
@@ -190,19 +193,24 @@ public class EvolvingMultiGraph {
             timestamps = new byte[(int) fis.getChannel().size()];
             BinIO.loadBytes(fis, timestamps);
             fis.close();
+            InputBitStream ibs = new InputBitStream(timestamps);
+            minTimestamp = ibs.readLong(64);
+            ibs.close();
+        } else {
+            timestampsStream = new FastMultiByteArrayInputStream(fis, fis.getChannel().size());
+            InputBitStream ibs = new InputBitStream(timestampsStream);
+            minTimestamp = ibs.readLong(64);
+            ibs.close();
         }
-        InputBitStream ibs = new InputBitStream(timestamps);
-        minTimestamp = ibs.readLong(64);
-        ibs.close();
+
     }
 
     public boolean isNeighbor(int node, int neighbor) {
         LazyIntIterator it = graph.successors(node);
         int n = -1;
         while((n = it.nextInt()) != -1) {
-            return true;
-            //			if(n == neighbor) return true;
-            //			else if(n > neighbor) return false;
+			if(n == neighbor) return true;
+			else if(n > neighbor) return false;
         }
 
         return false;
@@ -229,7 +237,13 @@ public class EvolvingMultiGraph {
         }
         to = pos-1;
 
-        InputBitStream ibs = new InputBitStream(timestamps);
+        InputBitStream ibs;
+        if (timestamps != null) {
+            ibs = new InputBitStream(timestamps);
+        } else {
+            ibs = new InputBitStream(new FastMultiByteArrayInputStream(timestampsStream));
+        }
+
         ibs.position(efindex.getLong(node));
         // Skip everything up to from
         long previous = minTimestamp;
@@ -263,8 +277,13 @@ public class EvolvingMultiGraph {
 
         public SuccessorIterator(int node) throws Exception {
             neighborsIterator = graph.successors(node);
-            ibs = new InputBitStream(timestamps);
-            ibs.position(efindex.getLong(node));
+            if (timestamps != null) {
+                ibs = new InputBitStream(timestamps);
+            } else {
+                ibs = new InputBitStream(new FastMultiByteArrayInputStream(timestampsStream));
+            }
+            long position = efindex.getLong(node);
+            ibs.position(position);
             previous = minTimestamp;
         }
 
