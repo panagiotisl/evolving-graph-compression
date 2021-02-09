@@ -15,7 +15,7 @@ public class Compress {
     private static final int k = 2;
 
     private static int[] aggregations = new int[]{1, 15*60, 24*60*60, 60, 30*60, 60*60, 4*60*60, 2*24*60*60};
-    private static String[] aggregationsStr = new String[]{"1", "15*60", "24*60*60", "60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
+    private static String[] aggregationsStr = new String[]{"1", "60", "24*60*60", "15*60", "30*60", "60*60", "4*60*60", "2*24*60*60"};
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
@@ -27,7 +27,7 @@ public class Compress {
 
             BufferedWriter writer = new BufferedWriter(new FileWriter(basename+"-results.txt"));
 
-            for(int k = 2; k < 3; k++) {
+            for(int k = 2; k < 8; k++) {
                 for(int j = 0; j < aggregations.length; j++) {
 
                     EvolvingMultiGraph emg = new EvolvingMultiGraph(
