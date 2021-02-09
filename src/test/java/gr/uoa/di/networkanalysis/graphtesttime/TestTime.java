@@ -3,6 +3,7 @@ package gr.uoa.di.networkanalysis.graphtesttime;
 import java.util.PrimitiveIterator.OfInt;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Random;
 

@@ -43,7 +43,6 @@ public class WriteLongZetaTest {
     }
 
 
-    @Test
     public void testReadFromMemory() throws IOException {
 
         long timestamp = 124;
